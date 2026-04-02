@@ -1,0 +1,236 @@
+/* ──────────────────────────────────────────────────────
+   Profile Page — script.js
+   ────────────────────────────────────────────────────── */
+
+// ─────────────────────────────────────────
+// Auth Guard
+// ─────────────────────────────────────────
+function checkAuth() {
+    const session = localStorage.getItem('dinetime_session');
+    if (!session) {
+        window.location.href = 'login.html';
+        return false;
+    }
+    return true;
+}
+// Run immediately
+checkAuth();
+
+// ─────────────────────────────────────────
+// Edit Profile Toggle
+// ─────────────────────────────────────────
+const editBtn    = document.getElementById('edit-profile-btn');
+const saveBtn    = document.getElementById('save-profile-btn');
+const profileInputs = ['full-name', 'email', 'phone'].map(id => document.getElementById(id));
+
+let editing = false;
+
+editBtn.addEventListener('click', () => {
+    editing = !editing;
+    profileInputs.forEach(input => {
+        input.disabled = !editing;
+    });
+    if (editing) {
+        editBtn.innerHTML = '<i class="fa-solid fa-xmark"></i> Cancel';
+        saveBtn.disabled = false;
+        profileInputs[0].focus();
+    } else {
+        editBtn.innerHTML = '<i class="fa-solid fa-pen"></i> Edit Profile';
+        saveBtn.disabled = true;
+    }
+});
+
+saveBtn.addEventListener('click', () => {
+    // Persist to localStorage
+    const data = {
+        name:  document.getElementById('full-name').value.trim(),
+        email: document.getElementById('email').value.trim(),
+        phone: document.getElementById('phone').value.trim(),
+    };
+
+    if (!data.name || !data.email) {
+        showToast('Name and email are required.', 'error');
+        return;
+    }
+
+    // Sync with Registry (so login details stay updated)
+    const session = JSON.parse(localStorage.getItem('dinetime_session'));
+    const registeredStaffStr = localStorage.getItem('dinetime_registered_staff');
+    if (session && registeredStaffStr) {
+        let registeredStaff = JSON.parse(registeredStaffStr);
+        if (registeredStaff[session.id]) {
+            registeredStaff[session.id].name = data.name;
+            registeredStaff[session.id].email = data.email;
+            registeredStaff[session.id].phone = data.phone;
+            localStorage.setItem('dinetime_registered_staff', JSON.stringify(registeredStaff));
+        }
+    }
+
+    localStorage.setItem('dinetime_profile', JSON.stringify(data));
+
+    // Update hero header name immediately
+    const heroName = document.querySelector('.hero-name');
+    if (heroName) heroName.textContent = data.name;
+
+    // Restore disabled state
+    profileInputs.forEach(inp => inp.disabled = true);
+    editBtn.innerHTML = '<i class="fa-solid fa-pen"></i> Edit Profile';
+    saveBtn.disabled = true;
+    editing = false;
+
+    showToast('Profile saved successfully!', 'success');
+});
+
+// Logout listener for the new hero button
+const profOutBtn = document.getElementById('logout-btn');
+if (profOutBtn) {
+    profOutBtn.addEventListener('click', () => {
+        localStorage.removeItem('dinetime_session');
+        window.location.href = 'login.html';
+    });
+}
+
+// Load saved profile on page load
+(function loadProfile() {
+    const saved = localStorage.getItem('dinetime_profile');
+    if (saved) {
+        const data = JSON.parse(saved);
+        if (data.name) {
+            document.getElementById('full-name').value = data.name;
+            const heroName = document.querySelector('.hero-name');
+            if (heroName) heroName.textContent = data.name;
+        }
+        if (data.email) document.getElementById('email').value      = data.email;
+        if (data.phone) document.getElementById('phone').value      = data.phone;
+    }
+})();
+
+
+// ─────────────────────────────────────────
+// Change Password (with verification)
+// ─────────────────────────────────────────
+const changePwdBtn = document.getElementById('change-pwd-btn');
+const pwdError     = document.getElementById('pwd-error');
+const pwdSuccess   = document.getElementById('pwd-success');
+
+changePwdBtn.addEventListener('click', () => {
+    const current  = document.getElementById('current-password').value;
+    const newPwd   = document.getElementById('new-password').value;
+    const confirm  = document.getElementById('confirm-password').value;
+
+    pwdError.textContent   = '';
+    pwdSuccess.textContent = '';
+
+    if (!current || !newPwd || !confirm) {
+        pwdError.textContent = 'Please fill in all password fields.';
+        return;
+    }
+
+    // --- NEW SECURITY CHECK ---
+    const session = JSON.parse(localStorage.getItem('dinetime_session'));
+    const registeredStaffStr = localStorage.getItem('dinetime_registered_staff');
+    
+    if (session && registeredStaffStr) {
+        let registeredStaff = JSON.parse(registeredStaffStr);
+        const userRecord = registeredStaff[session.id];
+        
+        if (!userRecord || userRecord.password !== current) {
+            pwdError.textContent = 'Current password incorrect. Please try again.';
+            return;
+        }
+
+        // --- VALIDATE NEW PASSWORD ---
+        if (newPwd.length < 8) {
+            pwdError.textContent = 'New password must be at least 8 characters.';
+            return;
+        }
+        if (newPwd !== confirm) {
+            pwdError.textContent = 'New passwords do not match.';
+            return;
+        }
+
+        // --- COMMIT CHANGES TO REGISTRY ---
+        userRecord.password = newPwd;
+        localStorage.setItem('dinetime_registered_staff', JSON.stringify(registeredStaff));
+        
+        // Clear fields and show success
+        document.getElementById('current-password').value = '';
+        document.getElementById('new-password').value     = '';
+        document.getElementById('confirm-password').value = '';
+        pwdSuccess.textContent = 'Password changed successfully!';
+        setTimeout(() => { pwdSuccess.textContent = ''; }, 4000);
+    } else {
+        pwdError.textContent = 'Unable to verify account session.';
+    }
+});
+
+
+// ─────────────────────────────────────────
+// Notification toggles — persist
+// ─────────────────────────────────────────
+const notifKeys = ['notif-email', 'notif-sms', 'notif-daily', 'notif-manager'];
+
+notifKeys.forEach(key => {
+    const el = document.getElementById(key);
+    // Load saved state
+    const saved = localStorage.getItem(key);
+    if (saved !== null) el.checked = saved === 'true';
+
+    el.addEventListener('change', () => {
+        localStorage.setItem(key, el.checked);
+    });
+});
+
+
+// Toast helper
+function showToast(message, type = 'success') {
+    // Remove existing toast if any
+    const existing = document.querySelector('.toast');
+    if (existing) existing.remove();
+
+    const toast = document.createElement('div');
+    toast.className = `toast toast-${type}`;
+    toast.innerHTML = `
+        <i class="fa-solid ${type === 'success' ? 'fa-circle-check' : 'fa-circle-exclamation'}"></i>
+        <span>${message}</span>
+    `;
+    document.body.appendChild(toast);
+
+    // Inject toast styles if not already present
+    if (!document.getElementById('toast-styles')) {
+        const style = document.createElement('style');
+        style.id = 'toast-styles';
+        style.textContent = `
+            .toast {
+                position: fixed;
+                bottom: 28px;
+                left: 50%;
+                transform: translateX(-50%) translateY(20px);
+                background: #1f2937;
+                color: #fff;
+                padding: 12px 22px;
+                border-radius: 10px;
+                font-size: 0.88rem;
+                font-weight: 500;
+                display: flex;
+                align-items: center;
+                gap: 10px;
+                z-index: 9999;
+                box-shadow: 0 8px 24px rgba(0,0,0,0.18);
+                animation: slideUp 0.3s ease forwards;
+            }
+            .toast-success i { color: #22C55E; }
+            .toast-error   i { color: #EF4444; }
+            @keyframes slideUp {
+                to { transform: translateX(-50%) translateY(0); opacity: 1; }
+            }
+        `;
+        document.head.appendChild(style);
+    }
+
+    setTimeout(() => {
+        toast.style.transition = 'opacity 0.3s';
+        toast.style.opacity    = '0';
+        setTimeout(() => toast.remove(), 300);
+    }, 3000);
+}

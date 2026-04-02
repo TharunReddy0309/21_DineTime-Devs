@@ -1,0 +1,170 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Profile - DineTime</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="../css/profile.css">
+
+    <script src="../../js/data.js"></script>
+</head>
+<body>
+
+    <!-- Hero Header -->
+    <header class="profile-hero">
+        <div class="hero-inner">
+            <div class="hero-left">
+                <button class="back-btn" id="back-btn" onclick="history.back()">
+                    <i class="fa-solid fa-arrow-left"></i>
+                </button>
+                <div class="hero-title-group">
+                    <h1>Profile</h1>
+                    <p>Manage your staff account preferences and notifications</p>
+                </div>
+            </div>
+            <div class="hero-right">
+                <div class="hero-user">
+                    <div class="hero-user-info">
+                        <span class="hero-name">Priya Mehta</span>
+                        <span class="hero-role">Staff</span>
+                    </div>
+                    <div class="hero-avatar">
+                        <i class="fa-solid fa-user"></i>
+                    </div>
+                </div>
+            
+            </div>
+        </div>
+    </header>
+
+    <!-- Page Content -->
+    <div class="page-container">
+
+        <!-- Profile Information -->
+        <section class="profile-card">
+            <div class="card-heading">
+                <div class="card-icon-wrap green">
+                    <i class="fa-solid fa-user"></i>
+                </div>
+                <h2>Profile Information</h2>
+            </div>
+
+            <div class="form-grid">
+                <div class="form-group">
+                    <label>Full Name</label>
+                    <input type="text" id="full-name" value="Priya Mehta" disabled>
+                </div>
+                <div class="form-group">
+                    <label>Email Address</label>
+                    <input type="email" id="email" value="priya.mehta@dinetime.com" disabled>
+                </div>
+                <div class="form-group">
+                    <label>Phone Number</label>
+                    <input type="tel" id="phone" value="+1 (555) 987-6543" disabled>
+                </div>
+            </div>
+
+            <div class="card-actions">
+                <button class="btn-outline" id="edit-profile-btn">
+                    <i class="fa-solid fa-pen"></i> Edit Profile
+                </button>
+                <button class="btn-orange" id="save-profile-btn" disabled>
+                    <i class="fa-solid fa-floppy-disk"></i> Save Changes
+                </button>
+            </div>
+        </section>
+
+        <!-- Security -->
+        <section class="profile-card">
+            <div class="card-heading">
+                <div class="card-icon-wrap green">
+                    <i class="fa-solid fa-lock"></i>
+                </div>
+                <h2>Security</h2>
+            </div>
+
+            <div class="form-col">
+                <div class="form-group">
+                    <label>Current Password</label>
+                    <input type="password" id="current-password" placeholder="Enter current password">
+                </div>
+                <div class="form-group">
+                    <label>New Password</label>
+                    <input type="password" id="new-password" placeholder="Enter new password">
+                </div>
+                <div class="form-group">
+                    <label>Confirm Password</label>
+                    <input type="password" id="confirm-password" placeholder="Re-enter new password">
+                </div>
+            </div>
+
+            <p class="pwd-error" id="pwd-error"></p>
+            <p class="pwd-success" id="pwd-success"></p>
+
+            <div class="card-actions">
+                <button class="btn-green" id="change-pwd-btn">
+                    Change Password
+                </button>
+            </div>
+        </section>
+
+        <!-- Notifications -->
+        <section class="profile-card">
+            <div class="card-heading">
+                <div class="card-icon-wrap green">
+                    <i class="fa-solid fa-bell"></i>
+                </div>
+                <h2>Notifications</h2>
+            </div>
+
+            <div class="toggle-list">
+                <div class="toggle-item">
+                    <div class="toggle-info">
+                        <span class="toggle-label">Email Notifications for new reservations</span>
+                        <span class="toggle-desc">Receive email alerts when new reservations are made</span>
+                    </div>
+                    <label class="toggle-switch">
+                        <input type="checkbox" checked id="notif-email">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+                <div class="toggle-item">
+                    <div class="toggle-info">
+                        <span class="toggle-label">SMS alerts for customer check-ins</span>
+                        <span class="toggle-desc">Get text messages when customers arrive</span>
+                    </div>
+                    <label class="toggle-switch">
+                        <input type="checkbox" checked id="notif-sms">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+                <div class="toggle-item">
+                    <div class="toggle-info">
+                        <span class="toggle-label">Daily reservation summary</span>
+                        <span class="toggle-desc">Daily email with reservation statistics</span>
+                    </div>
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="notif-daily">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+                <div class="toggle-item">
+                    <div class="toggle-info">
+                        <span class="toggle-label">Manager announcements</span>
+                        <span class="toggle-desc">Receive important updates from management</span>
+                    </div>
+                    <label class="toggle-switch">
+                        <input type="checkbox" checked id="notif-manager">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+            </div>
+        </section>
+
+    </div>
+
+    <script src="../js/profile.js"></script>
+</body>
+</html>

@@ -1,0 +1,148 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Table Status Management - DineTime</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="../css/dashboard.css">
+
+    <script src="../../js/data.js"></script>
+</head>
+
+<body>
+
+    <!-- Top Navigation (full-width, outside container) -->
+    <header class="top-nav">
+        <div class="nav-inner">
+            <div class="logo-area">
+                <img src="../images/logo.png" alt="DineTime Logo" class="logo"
+                    onerror="this.onerror=null; this.src='../../images/logo-placeholder.png'">
+                <div class="brand-text">
+                    <h1>DineTime</h1>
+                    <span>Staff Dashboard</span>
+                </div>
+            </div>
+            <div class="user-actions">
+                <a href="profile.html" class="user-profile" style="text-decoration:none;" title="View Profile">
+                    <div class="avatar"><i class="fa-solid fa-user"></i></div>
+                    <div class="user-info">
+                        <span class="user-name">Priya Mehta</span>
+                        <span class="user-role">Staff</span>
+                    </div>
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Page Container -->
+    <div class="dashboard-container">
+        <main class="main-content">
+            <!-- Header Section -->
+            <section class="page-header">
+                <div class="title-group">
+                    <h2>Table Status Management</h2>
+                    <p class="subtitle">Monitor and update restaurant table availability in real-time.</p>
+                </div>
+                <a href="check-in.html" class="btn-orange" style="text-decoration: none;"><i
+                        class="fa-solid fa-bars"></i> Customer Check-In</a>
+            </section>
+
+            <!-- Summary Cards -->
+            <section class="summary-cards">
+                <div class="card">
+                    <div class="card-dots"></div>
+                    <span class="card-label">Total Tables</span>
+                    <span class="card-val" id="total-tables">20</span>
+                </div>
+                <div class="card">
+                    <div class="card-dots green"></div>
+                    <span class="card-label green">Available</span>
+                    <span class="card-val" id="available-count">9</span>
+                </div>
+                <div class="card">
+                    <div class="card-dots orange"></div>
+                    <span class="card-label orange">Reserved</span>
+                    <span class="card-val" id="reserved-count">4</span>
+                </div>
+                <div class="card">
+                    <div class="card-dots red"></div>
+                    <span class="card-label red">Occupied</span>
+                    <span class="card-val" id="occupied-count">7</span>
+                </div>
+            </section>
+
+            <!-- Legend -->
+            <div class="legend-pills-outside">
+                <span class="pill available"><span class="dot"></span> Available</span>
+                <span class="pill reserved"><span class="dot"></span> Reserved</span>
+                <span class="pill occupied"><span class="dot"></span> Occupied</span>
+            </div>
+
+            <!-- Floor Map Section in a White Box -->
+            <section class="floor-section-container">
+                <div class="list-header">
+                    <div class="list-title">
+                        <h3>Restaurant Floor</h3>
+                    </div>
+                    <div class="floor-filters">
+                        <button type="button" class="filter-chip active" data-status="All">All Tables</button>
+                        <button type="button" class="filter-chip" data-status="Available">Available</button>
+                        <button type="button" class="filter-chip" data-status="Reserved">Reserved</button>
+                        <button type="button" class="filter-chip" data-status="Occupied">Occupied</button>
+                    </div>
+                </div>
+
+                <!-- Table Grid -->
+                <section class="table-grid" id="floor-map">
+                    <!-- Tables will be dynamically populated -->
+                </section>
+            </section>
+        </main>
+    </div>
+
+    <!-- Update Status Modal -->
+    <div id="status-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Update Table Status</h3>
+                <span class="close-btn" id="close-status-modal">&times;</span>
+            </div>
+
+            <div class="table-info-box">
+                <div class="info-group">
+                    <span class="info-label">Table Number</span>
+                    <span class="info-val" id="modal-table-num">Table 3</span>
+                </div>
+                <div class="info-group">
+                    <span class="info-label">Seats</span>
+                    <span class="info-val" id="modal-table-seats">4 Seats</span>
+                </div>
+                <div class="info-group" style="grid-column: 1 / -1; margin-top: 8px;">
+                    <span class="info-label">Current Status</span>
+                    <span class="info-val" id="modal-table-status">Available</span>
+                </div>
+            </div>
+
+            <div class="form-group" style="margin-top: 24px;">
+                <label>Select New Status</label>
+                <select id="new-status-select" class="status-select">
+                    <option value="Available">Available</option>
+                    <option value="Reserved">Reserved</option>
+                    <option value="Occupied">Occupied</option>
+                </select>
+            </div>
+
+            <div class="form-actions">
+                <button type="button" class="btn-secondary" id="cancel-status-btn">Cancel</button>
+                <button type="button" class="btn-green" id="save-status-btn">Update Status</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="../js/dashboard.js"></script>
+</body>
+
+</html>

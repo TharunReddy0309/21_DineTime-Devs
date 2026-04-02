@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DineTime - Manager Profile</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Phosphor Icons for modern light icons -->
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="logo-container">
+                <img style="width: 38px; height: 38px; border-radius: 8px; object-fit: contain; margin-right: 4px;" src="images/logo.png" alt="DineTime Logo">
+                <div class="logo-text">
+                    <h1>DineTime</h1>
+                    <span>Manager Portal</span>
+                </div>
+            </div>
+
+            <nav class="main-nav">
+                <ul>
+                    <li class="active">
+                        <a href="index.html">
+                            <i class="ph ph-user"></i>
+                            <span>Profile</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="reservations.html">
+                            <i class="ph ph-calendar-blank"></i>
+                            <span>Reservations</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="menu.html">
+                            <i class="ph ph-fork-knife"></i>
+                            <span>Menu Management</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="time-slots.html">
+                            <i class="ph ph-clock"></i>
+                            <span>Time Slot Management</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="tables.html">
+                            <i class="ph ph-squares-four"></i>
+                            <span>Table and Capacity<br>Management</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="reviews.html">
+                            <i class="ph ph-star"></i>
+                            <span>Customer Reviews</span>
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Header Banner -->
+            <header class="top-header">
+                <div class="header-overlay"></div>
+                <div class="header-content">
+                    <div class="header-title">
+                        <h2>Manager Profile</h2>
+                        <p>Manage your personal and restaurant information</p>
+                    </div>
+                    <div class="header-actions">
+                        <div class="notification-wrapper">
+                            <button class="icon-btn" aria-label="Notifications" id="notification-btn">
+                                <i class="ph ph-bell"></i>
+                                <span class="notification-badge"></span>
+                            </button>
+                            <div class="notification-dropdown" id="notification-dropdown">
+                                <div class="notification-header">
+                                    <h4>Notifications</h4>
+                                    <button class="mark-read-btn">Mark all as read</button>
+                                </div>
+                                <div class="notification-list" id="notification-list">
+                                    <!-- Rendered dynamically -->
+                                </div>
+
+                            </div>
+                        </div>
+                        <button class="icon-btn" aria-label="Logout">
+                            <i class="ph ph-sign-out"></i>
+                        </button>
+
+                    </div>
+                </div>
+            </header>
+
+            <div class="content-wrapper">
+                <!-- User Profile Card -->
+                <section class="card profile-card" id="user-profile">
+                    <div class="profile-left">
+                        <div class="avatar-circle">
+                            <i class="ph ph-user"></i>
+                        </div>
+                        <button class="btn btn-primary-green btn-small" id="upload-photo-btn">
+                            <i class="ph ph-image"></i>
+                            Upload Photo
+                        </button>
+                        <input type="file" id="photo-upload-input" accept="image/*" style="display: none;">
+                        <button class="btn btn-small" id="remove-photo-btn" style="background-color: transparent; border: 1px solid #EF4444; color: #EF4444; display: none;">
+                            <i class="ph ph-trash"></i>
+                            Remove Photo
+                        </button>
+                    </div>
+                    
+                    <div class="profile-right">
+                        <div class="profile-header">
+                            <div>
+                                <h3 id="profile-name"></h3>
+                            </div>
+                            <button class="btn btn-primary-orange btn-small" id="edit-profile-btn">
+                                <i class="ph ph-pencil-simple"></i>
+                                <span>Edit Profile</span>
+                            </button>
+                        </div>
+                        
+                        <div class="profile-details-grid">
+                            <div class="detail-item">
+                                <span class="detail-label"><i class="ph ph-envelope-simple"></i> Email Address</span>
+                                <span class="detail-value" id="profile-email"></span>
+                            </div>
+                            <div class="detail-item">
+                                <span class="detail-label"><i class="ph ph-phone"></i> Phone Number</span>
+                                <span class="detail-value" id="profile-phone"></span>
+                            </div>
+                            <div class="detail-item">
+                                <span class="detail-label"><i class="ph ph-map-pin"></i> City</span>
+                                <span class="detail-value" id="profile-city"></span>
+                            </div>
+                            <div class="detail-item">
+                                <span class="detail-label"><i class="ph ph-storefront"></i> Restaurant Name</span>
+                                <span class="detail-value" id="profile-rest"></span>
+                            </div>
+                            <div class="detail-item">
+                                <span class="detail-label"><i class="ph ph-clock"></i> Member Since</span>
+                                <span class="detail-value" id="profile-member"></span>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Restaurant Overview Section -->
+                <section class="card restaurant-card" id="restaurant-overview">
+                    <div class="restaurant-card-header">
+                        <h3>Restaurant Overview</h3>
+                        <button class="btn btn-primary-green btn-small" id="manage-staff-btn">Manage Staff Access</button>
+                    </div>
+                    
+                    <!-- Tabs -->
+                    <div class="tabs">
+                        <button class="tab-btn active" data-target="profile-info">Profile Information</button>
+                        <button class="tab-btn" data-target="reservation-policies">Reservation Policies</button>
+                        <button class="tab-btn" data-target="restaurant-images">Restaurant Images</button>
+                    </div>
+
+                    <div class="tab-content-container">
+                        <!-- Tab 1: Profile Information -->
+                        <div class="tab-pane active" id="profile-info">
+                            <div class="rest-info-layout">
+                                <div class="rest-info-image" style="position: relative;">
+                                    <img id="rest-profile-img" src="" alt="Restaurant Interior" style="width: 100%; height: 100%; object-fit: cover; display: none;">
+                                    
+                                    <!-- Empty State Upload -->
+                                    <label id="rest-img-empty" for="rest-img-upload" style="width: 100%; height: 100%; background: #F8FAFC; border: 2px dashed #CBD5E1; display: flex; flex-direction: column; justify-content: center; align-items: center; cursor: pointer; border-radius: 8px;">
+                                        <i class="ph ph-image" style="font-size: 32px; color: #94A3B8; margin-bottom: 8px;"></i>
+                                        <span style="font-size: 13px; color: #64748B; font-weight: 500;">Upload Photo</span>
+                                    </label>
+                                    
+                                    <!-- Remove Button -->
+                                    <button id="rest-img-remove" style="position: absolute; top: 12px; right: 12px; height: 32px; padding: 0 12px; background: rgba(239, 68, 68, 0.9); color: white; border: none; border-radius: 6px; display: none; align-items: center; gap: 6px; cursor: pointer; font-size: 13px; font-weight: 500; backdrop-filter: blur(4px); z-index: 10;">
+                                        <i class="ph ph-trash"></i> Remove
+                                    </button>
+                                    
+                                    <!-- Hidden Input -->
+                                    <input type="file" id="rest-img-upload" accept="image/*" style="display: none;">
+                                </div>
+                                <div class="rest-info-details">
+                                    <div class="rest-info-header">
+                                        <h4 id="rest-name"></h4>
+                                        <button class="btn btn-primary-orange btn-small" id="edit-rest-btn">
+                                            <i class="ph ph-pencil-simple"></i>
+                                            <span>Edit Restaurant Details</span>
+                                        </button>
+                                    </div>
+                                    
+                                    <div class="rest-about">
+                                        <h5>About</h5>
+                                        <p id="rest-about-text"></p>
+                                    </div>
+
+                                    <div class="rest-details-grid">
+                                        <div class="detail-col">
+                                            <div class="detail-item-small">
+                                                <span class="detail-label">Cuisine Type</span>
+                                                <span class="detail-value" id="rest-cuisine"></span>
+                                            </div>
+                                            <div class="detail-item-small">
+                                                <span class="detail-label">Seating Capacity</span>
+                                                <span class="detail-value" id="rest-capacity"></span>
+                                            </div>
+                                            <div class="detail-item-small">
+                                                <span class="detail-label">Location</span>
+                                                <span class="detail-value" id="rest-location"></span>
+                                            </div>
+                                            <div class="detail-item-small">
+                                                <span class="detail-label">Opening Hours</span>
+                                                <span class="detail-value" id="rest-hours"></span>
+                                            </div>
+                                            <div class="detail-item-small">
+                                                <span class="detail-label">Parking</span>
+                                                <span class="detail-value" id="rest-parking"></span>
+                                            </div>
+                                        </div>
+                                        <div class="detail-col">
+                                            <div class="detail-item-small">
+                                                <span class="detail-label">Average Rating</span>
+                                                <span class="detail-value rating-val" id="rest-rating"></span>
+                                            </div>
+                                            <div class="detail-item-small">
+                                                <span class="detail-label">Dress Code</span>
+                                                <span class="detail-value" id="rest-dress"></span>
+                                            </div>
+
+                                            <div class="detail-item-small">
+                                                <span class="detail-label">Contact Number</span>
+                                                <span class="detail-value" id="rest-contact"></span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Tab 2: Reservation Policies -->
+                        <div class="tab-pane" id="reservation-policies">
+                            <div class="policies-header">
+                                        <h4>Reservation Policies</h4>
+                                        <button class="btn btn-primary-orange btn-small" id="edit-policies-btn">
+                                            <i class="ph ph-pencil-simple"></i>
+                                            <span>Edit Policies</span>
+                                        </button>
+                                    </div>
+                            
+                            <div class="policies-grid">
+                                <!-- Rendered dynamically -->
+                            </div>
+                            
+                            <!-- Add Policy Button -->
+                            <div style="margin-top: 24px; text-align: center;">
+                                <button class="btn btn-small" id="add-policy-btn" style="background:#f1f5f9; color:var(--text-dark); border: 1px solid var(--border-color); display: flex; align-items: center; justify-content: center; margin: 0 auto; gap: 8px; padding: 10px 24px;">
+                                    <i class="ph ph-plus" style="font-size: 18px;"></i>
+                                    <span>Add New Policy</span>
+                                </button>
+                            </div>
+                        </div>
+
+
+                        <!-- Tab 3: Restaurant Images -->
+                        <div class="tab-pane" id="restaurant-images">
+                            <div class="images-header">
+                                <h4>Restaurant Gallery</h4>
+                                <button class="btn btn-primary-orange btn-small" id="upload-images-btn">Upload Images</button>
+                                <input type="file" id="gallery-upload-input" accept="image/*" multiple style="display: none;">
+                            </div>
+                            
+                            <div class="gallery-grid">
+                                <!-- Rendered dynamically -->
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Activity Section -->
+                <section class="activity-section">
+                    <h3>Today's Activity</h3>
+                    <div class="activity-cards">
+                        <div class="activity-card">
+                            <div class="activity-icon bg-green-light">
+                                <i class="ph ph-calendar-blank text-green"></i>
+                            </div>
+                            <span class="activity-label">Today's Reservations</span>
+                            <span class="activity-value" id="act-res-val"></span>
+                        </div>
+                        <div class="activity-card">
+                            <div class="activity-icon bg-green-light">
+                                <i class="ph ph-squares-four text-green"></i>
+                            </div>
+                            <span class="activity-label">Available Tables</span>
+                            <span class="activity-value" id="act-tbl-val"></span>
+                        </div>
+                        <div class="activity-card">
+                            <div class="activity-icon bg-green-light">
+                                <i class="ph ph-star text-green"></i>
+                            </div>
+                            <span class="activity-label">Average Rating</span>
+                            <div class="activity-value rating-inline" id="act-rtg-val"></div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </main>
+    </div>
+
+    <!-- Toast Notification Container -->
+    <div id="toast-container" class="toast-container"></div>
+
+    <script src="js/mock-data.js"></script>
+    <script src="js/storage.js"></script>
+    <script src="js/ui-render.js"></script>
+    <script src="js/app.js"></script>
+</body>
+</html>

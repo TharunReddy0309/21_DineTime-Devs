@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Staff Login - DineTime</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="../css/login.css">
+
+    <script src="../../js/data.js"></script>
+</head>
+<body>
+
+    <div class="split-layout">
+        
+        <!-- Left Banner Section -->
+        <div class="banner-section">
+            <div class="banner-overlay"></div>
+            
+            <a href="../../Landing/index.html" class="back-link"><i class="fa-solid fa-chevron-left"></i></a>
+            
+            <div class="banner-content">
+                <div class="brand">
+                    <img style="width: 32px; height: 32px; border-radius: 8px; object-fit: contain; margin-right: 8px;" src="../images/logo.png" alt="DineTime Logo">
+                    <span class="brand-name">DineTime</span>
+                </div>
+                
+                <h1 class="hero-text">Service Starts Here</h1>
+                <p class="hero-subtext">Manage tables, coordinate orders, and deliver seamless dining experiences.</p>
+                
+                <ul class="feature-list">
+                    <li><i class="fa-regular fa-circle-check"></i> Manage Table Status</li>
+                    <li><i class="fa-regular fa-circle-check"></i> Track Reservations</li>
+                    <li><i class="fa-regular fa-circle-check"></i> Monitor Food Orders</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Right Form Section -->
+        <div class="form-section">
+            <div class="form-container">
+                
+                <div class="form-header">
+                    <h2>Staff Login</h2>
+                    <p>Access the restaurant operations dashboard.</p>
+                </div>
+
+                <form id="loginForm" class="auth-form">
+                    
+                    <div class="form-group">
+                        <label for="staff-id">Staff ID or Email</label>
+                        <input type="text" id="staff-id" placeholder="Enter your staff ID or email" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="password">Password</label>
+                        <div class="input-with-icon">
+                            <input type="password" id="password" placeholder="Enter your password" required>
+                            <i class="fa-regular fa-eye toggle-password" id="toggle-pwd"></i>
+                        </div>
+                    </div>
+
+                    <div class="form-options">
+                        <label class="checkbox-container">
+                            <input type="checkbox" id="remember-me">
+                            <span class="checkmark"></span>
+                            <span class="checkbox-label">Remember this device</span>
+                        </label>
+                        <a href="#" class="forgot-link" id="forgot-link">Forgot Password?</a>
+                    </div>
+                    
+                    <!-- Login Error Message Container -->
+                    <p id="login-error" class="error-message" style="display: none;"></p>
+
+                    <button type="submit" class="btn-primary">Login to Dashboard</button>
+                    
+                </form>
+
+                <div class="form-footer">
+                    <p>Don't have an account? <a href="registration.html">Create Account</a></p>
+                </div>
+                
+                <div class="system-footer">
+                    <p>Restaurant Staff Portal &bull; DineTime System</p>
+                </div>
+
+            </div>
+        </div>
+        
+    </div>
+
+    <!-- Forgot Password Modal -->
+    <div id="forgotPasswordModal" class="modal hidden">
+        <div class="modal-content">
+            <span class="close-modal" id="closeForgotModal"><i class="fa-solid fa-xmark"></i></span>
+            <h2>Reset Password</h2>
+            <p style="margin-bottom: 24px; color: var(--text-muted); font-size: 14px;">Enter your email address and we'll send you a link to reset your password.</p>
+            <form id="forgot-password-form">
+                <div class="form-group">
+                    <label for="reset-email">Email Address</label>
+                    <input type="email" id="reset-email" placeholder="Enter your email" required>
+                </div>
+                <button type="submit" class="btn-primary" style="margin-top: 10px;">Send Reset Link</button>
+            </form>
+            <div id="reset-success-msg" class="hidden" style="color: #4f6f52; background: rgba(79,111,82,0.1); padding: 12px; border-radius: 8px; text-align: center; margin-top: 16px; font-weight: 500;">
+                <i class="fa-solid fa-circle-check" style="margin-right: 6px;"></i> A reset link has been sent to your email!
+            </div>
+        </div>
+    </div>
+
+    <script src="../js/login.js"></script>
+</body>
+</html>

@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DineTime - Super Admin Login</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <link rel="stylesheet" href="../css/login.css">
+
+    <script src="../../js/data.js"></script>
+</head>
+<body>
+    <div class="split-container">
+        <!-- Left Banner System -->
+        <section class="banner-side">
+            <div class="banner-overlay"></div>
+            <div class="banner-content">
+                <div class="brand">
+                    <img style="width: 48px; height: 48px; border-radius: 12px; object-fit: contain; background: rgba(255,255,255,0.08); padding: 6px; border: 1px solid rgba(163, 181, 164, 0.2);" src="../../Restaurant_manager/images/logo.png" alt="DineTime Logo">
+                    <span>DineTime <small>COMMAND</small></span>
+                </div>
+                <h1 class="hero-title">Master Platform</h1>
+                <p class="hero-subtitle">Authentication required to access global network controls, system audits, and regional scaling tools.</p>
+            </div>
+        </section>
+
+        <!-- Right Login Process -->
+        <section class="form-side">
+            <div class="login-card">
+                <div class="card-header">
+                    <h2>Master Access</h2>
+                    <p>Enter your authorization credentials.</p>
+                </div>
+
+                <form id="superLoginForm">
+                    <div class="form-group">
+                        <label for="superEmail">Master Email</label>
+                        <input type="email" id="superEmail" placeholder="admin@dinetime.com" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="superPassword">Security Key</label>
+                        <div class="password-input">
+                            <input type="password" id="superPassword" placeholder="Enter root password" required>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn btn-login">Verify Authentication</button>
+                    
+                    <div class="demo-override" style="margin-top: 1.5rem; text-align: center;">
+                        <span style="font-size: 0.8rem; color: var(--text-muted); cursor: help;" title="Default: admin@dinetime.com / admin123"><i class="ph ph-info"></i> Missing keys? Check console logs.</span>
+                    </div>
+                </form>
+            </div>
+            
+            <footer class="footer">
+                <p class="copyright">&copy; 2026 DineTime Platform. Internal Use Only.</p>
+            </footer>
+        </section>
+    </div>
+
+    <!-- Error Toast Pop-up -->
+    <div id="login-error-msg" class="hidden toast-popup">
+        <i class="ph ph-warning-circle" style="font-size: 20px;"></i> Master credentials invalid.
+    </div>
+
+    <script src="../js/login.js"></script>
+</body>
+</html>

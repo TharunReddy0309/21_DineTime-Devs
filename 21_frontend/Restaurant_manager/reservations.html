@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DineTime - Reservations</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        /* Specific page styles injected here initially for speed, then moved to style.css if needed */
+        .res-header {
+            background-image: url('images/restaurant.jpg');
+
+            background-size: cover;
+            background-position: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="logo-container">
+                <img style="width: 38px; height: 38px; border-radius: 8px; object-fit: contain; margin-right: 4px;" src="images/logo.png" alt="DineTime Logo">
+                <div class="logo-text">
+                    <h1>DineTime</h1>
+                    <span>Manager Portal</span>
+                </div>
+            </div>
+
+            <nav class="main-nav">
+                <ul>
+                    <li>
+                        <a href="index.html">
+                            <i class="ph ph-user"></i>
+                            <span>Profile</span>
+                        </a>
+                    </li>
+                    <li class="active">
+                        <a href="reservations.html">
+                            <i class="ph ph-calendar-blank"></i>
+                            <span>Reservations</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="menu.html">
+                            <i class="ph ph-fork-knife"></i>
+                            <span>Menu Management</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="time-slots.html">
+                            <i class="ph ph-clock"></i>
+                            <span>Time Slot Management</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="tables.html">
+                            <i class="ph ph-squares-four"></i>
+                            <span>Table and Capacity<br>Management</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="reviews.html">
+                            <i class="ph ph-star"></i>
+                            <span>Customer Reviews</span>
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <header class="top-header res-header" style="height: 180px;">
+                <div class="header-overlay" style="background: linear-gradient(to right, rgba(0,0,0,0.8), rgba(0,0,0,0.5));"></div>
+                <div class="header-content">
+                    <div class="header-title">
+                        <h2>Reservations</h2>
+                        <p>Manage and monitor all restaurant reservations</p>
+                    </div>
+                    <div class="header-actions">
+                        <div class="user-profile-widget">
+                            <div class="avatar-circle-small">
+                                <i class="ph ph-user"></i>
+                            </div>
+                            <div class="user-info">
+                                <h4></h4>
+                                <span>Restaurant Manager</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </header>
+
+            <div class="content-wrapper" style="margin-top: -40px;">
+                
+                <!-- Statistics Row -->
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon" style="color: var(--text-dark); background: #F1F5F9;"><i class="ph ph-folder"></i></div>
+                        <span class="stat-label">Today's Total</span>
+                        <span class="stat-value" id="stat-total">0</span>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon" style="color: #10B981; background: #D1FAE5;"><i class="ph ph-check"></i></div>
+                        <span class="stat-label">Confirmed</span>
+                        <span class="stat-value" id="stat-confirmed">0</span>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon" style="color: #3B82F6; background: #DBEAFE;"><i class="ph ph-clock"></i></div>
+                        <span class="stat-label">Pending</span>
+                        <span class="stat-value" id="stat-pending">0</span>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon" style="color: #64748B; background: #E2E8F0;"><i class="ph ph-x-circle"></i></div>
+                        <span class="stat-label">Cancelled</span>
+                        <span class="stat-value" id="stat-cancelled">0</span>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon" style="color: #EF4444; background: #FEE2E2;"><i class="ph ph-x"></i></div>
+                        <span class="stat-label">No-show</span>
+                        <span class="stat-value" id="stat-noshow">0</span>
+                    </div>
+                </div>
+
+                <!-- Filters Row -->
+                <div class="card filter-container">
+                    <div class="search-bar">
+                        <i class="ph ph-magnifying-glass"></i>
+                        <input type="text" id="search-input" placeholder="Search for name, email, and phone...">
+                    </div>
+                    <div class="filter-dropdowns">
+                        <div class="filter-group-premium">
+                            <div class="premium-date-wrapper">
+                                <input type="date" id="filter-date-custom">
+                                <i class="ph ph-calendar-blank"></i>
+                            </div>
+                        </div>
+
+                        
+                        <div class="dropdown-wrapper">
+                            <i class="ph ph-funnel"></i>
+                            <select id="filter-status">
+                                <option value="">All Statuses</option>
+                                <option value="Confirmed">Confirmed</option>
+                                <option value="Pending">Pending</option>
+                                <option value="Cancelled">Cancelled</option>
+                                <option value="No-show">No-show</option>
+                            </select>
+                        </div>
+
+                        <div class="dropdown-wrapper">
+                            <i class="ph ph-users"></i>
+                            <select id="filter-guests">
+                                <option value="">Any Size</option>
+                                <option value="2">2 Guests</option>
+                                <option value="4">4 Guests</option>
+                                <option value="6+">6+ Guests</option>
+                            </select>
+                        </div>
+                        <button class="btn btn-small" id="clear-filters" style="background: #F1F5F9; color: var(--text-dark); border: 1px solid var(--border-color); min-width: 100px;">
+                            <i class="ph ph-x"></i> Clear Filters
+                        </button>
+
+                    </div>
+                </div>
+
+                <!-- Reservations List -->
+                <div class="reservations-list" id="reservations-list">
+                    <!-- Cards will be injected dynamically via JS -->
+                </div>
+                
+            </div>
+        </main>
+    </div>
+
+    <!-- Toast Container -->
+    <div id="toast-container" class="toast-container"></div>
+
+    <script src="js/mock-data.js"></script>
+    <script src="js/storage.js"></script>
+    <script src="js/reservations.js"></script>
+</body>
+</html>

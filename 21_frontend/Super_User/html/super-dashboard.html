@@ -1,0 +1,610 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Super Admin - DineTime Platform</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="../css/global.css">
+    
+    <!-- AUTHENTICATION CHECK: Force Redirect If Not Authorized -->
+    <script>
+        if (localStorage.getItem('super_auth_status') !== 'true') {
+            window.location.href = 'login.html';
+        }
+    </script>
+
+    <style>
+        body { margin: 0; padding: 0; overflow-x: hidden; }
+        .dashboard-layout { display: flex; min-height: 100vh; background-color: var(--bg-light); }
+        
+        /* Fixed Sidebar - More Compact */
+        .sidebar { width: 250px; padding: 1.5rem 1rem; display: flex; flex-direction: column; background-color: #0F1714; color: white; position: fixed; top: 0; left: 0; bottom: 0; z-index: 100; box-sizing: border-box; overflow-y: auto;}
+        .sidebar-logo { font-size: 1.25rem; font-weight: 800; margin-bottom: 2rem; display: flex; align-items: center; gap: 0.5rem; line-height: 1.2; padding: 0 0.5rem;}
+        
+        .nav-item { padding: 0.75rem 1rem; border-radius: 8px; font-weight: 500; cursor: pointer; margin-bottom: 0.25rem; transition: all 0.2s; color: #A3B5A4; display: flex; align-items: center; gap: 10px; font-size: 0.85rem;}
+        .nav-item i { width: 18px; text-align: center; font-size: 1rem; }
+        .nav-item.active { color: white; background: rgba(255,255,255,0.1); border-left: 4px solid var(--primary-green); }
+        
+        /* Main Wrapper taking up remaining space */
+        .main-wrapper { margin-left: 250px; width: calc(100% - 250px); display: flex; flex-direction: column; min-height: 100vh; box-sizing: border-box; }
+        .main-content { flex-grow: 1; padding: 1.5rem 2.5rem; }
+        
+        .dashboard-header { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 1.5rem; }
+        .dashboard-header h1 { margin: 0; font-size: 1.8rem; font-weight: 800; letter-spacing: -0.5px; color: var(--text-dark); }
+        .dashboard-header p { margin: 0.25rem 0 0 0; color: var(--text-muted); font-size: 0.95rem;}
+        
+        .kpi-grid { display: grid; gap: 1rem; margin-bottom: 1.5rem; }
+        .kpi-card { background: white; padding: 1.25rem; border-radius: 8px; box-shadow: var(--shadow-sm); border: 1px solid var(--border-light); border-left: 4px solid var(--primary-green); }
+        .kpi-card h4 { margin: 0; color: var(--text-muted); font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 700; }
+        .kpi-card .value { margin: 0.5rem 0 0 0; font-size: 1.8rem; font-weight: 800; color: var(--text-dark); line-height: 1; }
+        .kpi-icon-wrap { background: #E3F2FD; width: 32px; height: 32px; border-radius: 6px; display: flex; align-items: center; justify-content: center; margin-bottom: 0.75rem; font-size: 1rem; color: #1976D2; }
+        
+        .table-container { background: var(--card-bg); border-radius: 8px; box-shadow: var(--shadow-sm); border: 1px solid var(--border-light); overflow: hidden; }
+        table { width: 100%; border-collapse: collapse; text-align: left; }
+        th, td { padding: 0.8rem 1rem; border-bottom: 1px solid var(--border-light); font-size: 0.85rem;}
+        th { background-color: #F9F5F2; color: var(--text-muted); font-size: 0.7rem; text-transform: uppercase; font-weight: 700; letter-spacing: 0.5px;}
+        tr:hover { background-color: #FAFAFA; }
+        
+        .switch { position: relative; display: inline-block; width: 44px; height: 24px; }
+        .switch input { opacity: 0; width: 0; height: 0; }
+        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #ccc; transition: .4s; border-radius: 24px; }
+        .slider:before { position: absolute; content: ""; height: 18px; width: 18px; left: 3px; bottom: 3px; background-color: white; transition: .4s; border-radius: 50%; }
+        input:checked + .slider { background-color: #2E7D32; }
+        input:checked + .slider:before { transform: translateX(20px); }
+        
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); display: none; align-items: center; justify-content: center; z-index: 1000; backdrop-filter: blur(4px); }
+        .modal-content { background: white; padding: 2rem; border-radius: 12px; width: 100%; max-width: 700px; box-shadow: var(--shadow-md); max-height: 90vh; overflow-y: auto; }
+        .form-group { margin-bottom: 1rem; }
+        .form-group label { display: block; margin-bottom: 0.4rem; font-weight: 600; font-size: 0.85rem; color: var(--text-dark); }
+        .form-group input, .form-group select, .form-group textarea { width: 100%; padding: 0.6rem 0.8rem; border: 1px solid #ccc; border-radius: 6px; box-sizing: border-box; font-family: inherit; font-size: 0.85rem;}
+        .modal-actions { display: flex; gap: 1rem; justify-content: flex-end; margin-top: 1.5rem; }
+        
+        #toast-container { position: fixed; bottom: 2rem; right: 2rem; z-index: 2000; display: flex; flex-direction: column; gap: 0.5rem; }
+        .toast { background: #333; color: white; padding: 1rem 1.5rem; border-radius: 8px; box-shadow: 0 10px 30px rgba(0,0,0,0.2); font-weight: 500; display: flex; align-items: center; gap: 0.5rem; transform: translateY(100px); opacity: 0; transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); font-size: 0.9rem;}
+        .toast.show { transform: translateY(0); opacity: 1; }
+        .toast-success { border-left: 4px solid #2E7D32; }
+        .toast-error { border-left: 4px solid #C62828; }
+        .toast-warning { border-left: 4px solid #F57F17; }
+
+        .filter-bar { display: flex; gap: 1rem; background: white; padding: 1rem 1.25rem; border-radius: 8px; border: 1px solid var(--border-light); align-items: center;}
+        .panel { background: white; border-radius: 8px; border: 1px solid var(--border-light); box-shadow: var(--shadow-sm); overflow: hidden; margin-bottom: 1.5rem; }
+        .panel-head { padding: 1rem 1.25rem; border-bottom: 1px solid var(--border-light); background: #fff; }
+        .panel-title { font-weight: 700; color: var(--text-dark); font-size: 1rem; }
+        
+        .btn-sm { padding: 0.4rem 0.6rem; font-size: 0.85rem; border-radius: 6px; cursor: pointer;}
+    </style>
+
+    <script src="../../js/data.js"></script>
+</head>
+<body>
+
+    <div class="dashboard-layout">
+        <aside class="sidebar">
+            <div class="sidebar-logo"><i class="fa-solid fa-utensils" style="margin-right: 8px;"></i> DineTime <span style="font-size: 0.65rem; color: #A3B5A4; display: block; letter-spacing: 1px; margin-top: 4px;">SUPER USER</span></div>
+            <div class="nav-item active" id="nav-dashboard" onclick="switchTab('dashboard')"><i class="fa-solid fa-chart-line"></i> Dashboard</div>
+            <div class="nav-item" id="nav-restaurants" onclick="switchTab('restaurants')"><i class="fa-solid fa-building"></i> Restaurants</div>
+            <div class="nav-item" id="nav-users" onclick="switchTab('users')"><i class="fa-solid fa-users"></i> User Management</div>
+            <div class="nav-item" id="nav-reservations" onclick="switchTab('reservations')"><i class="fa-solid fa-calendar-check"></i> Reservations</div>
+            <div class="nav-item" id="nav-payments" onclick="switchTab('payments')"><i class="fa-solid fa-credit-card"></i> Payments</div>
+            <div class="nav-item" id="nav-reports" onclick="switchTab('reports')"><i class="fa-solid fa-chart-pie"></i> Reports & Analytics</div>
+            <div class="nav-item" id="nav-notifications" onclick="switchTab('notifications')"><i class="fa-solid fa-bullhorn"></i> Broadcast Center</div>
+            <div class="nav-item" id="nav-audit" onclick="switchTab('audit')"><i class="fa-solid fa-clipboard-list"></i> System Audit Logs</div>
+            <div class="nav-item" style="margin-top: auto; color: #fca5a5;" onclick="logoutSuperAdmin()"><i class="fa-solid fa-right-from-bracket"></i> Terminate Session</div>
+        </aside>
+
+        <div class="main-wrapper">
+            <main class="main-content">
+                
+                <section id="view-dashboard" class="dashboard-view">
+                    <div class="dashboard-header">
+                        <div>
+                            <h1>Global Dashboard</h1>
+                            <p>Real-time platform health and metrics.</p>
+                        </div>
+                    </div>
+
+                    <div class="kpi-grid" style="grid-template-columns: repeat(5, 1fr);">
+                        <div class="kpi-card" style="border-left-color: #1976D2;">
+                            <h4>Total Bookings</h4>
+                            <p class="value" id="dashTotalBookings">0</p>
+                        </div>
+                        <div class="kpi-card" style="border-left-color: #9C27B0;">
+                            <h4 style="font-size: 0.65rem;">TOTAL DINERS USING PLATFORM</h4>
+                            <p class="value" id="dashTotalUsers">0</p>
+                        </div>
+                        <div class="kpi-card" style="border-left-color: #5F7A61;">
+                            <h4>Total Restaurants</h4>
+                            <p class="value" id="dashTotalRes">0</p>
+                        </div>
+                        <div class="kpi-card" style="border-left-color: #F57F17;">
+                            <h4>Total Revenue</h4>
+                            <p class="value" id="dashTotalRev" style="font-size: 1.6rem; margin-top: 0.6rem;">&#8377;0</p>
+                        </div>
+                        <div class="kpi-card" style="border-left-color: #C62828;">
+                            <h4>Pending Approvals</h4>
+                            <p class="value" id="dashPendingApps" style="color: #C62828;">0</p>
+                        </div>
+                    </div>
+
+                    <div style="display: grid; grid-template-columns: 1.5fr 1fr; gap: 1.5rem;">
+                        <div class="panel">
+                            <div class="panel-head"><div class="panel-title">Recent System Activity</div></div>
+                            <div class="panel-body" style="padding: 0;">
+                                <div style="display: flex; gap: 1rem; padding: 1rem 1.25rem; border-bottom: 1px solid var(--border-light); align-items: center;">
+                                    <i class="fa-solid fa-circle-check" style="color: #2E7D32; font-size: 1.1rem;"></i>
+                                    <div><div style="font-weight: 600; font-size: 0.85rem; color: var(--text-dark);">Spice Garden approved and activated</div><div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 2px;">2 mins ago</div></div>
+                                </div>
+                                <div style="display: flex; gap: 1rem; padding: 1rem 1.25rem; border-bottom: 1px solid var(--border-light); align-items: center;">
+                                    <i class="fa-solid fa-triangle-exclamation" style="color: #C62828; font-size: 1.1rem;"></i>
+                                    <div><div style="font-weight: 600; font-size: 0.85rem; color: var(--text-dark);">Reservation conflict detected &mdash; Table 4</div><div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 2px;">11 mins ago</div></div>
+                                </div>
+                                <div style="display: flex; gap: 1rem; padding: 1rem 1.25rem; align-items: center;">
+                                    <i class="fa-solid fa-user-plus" style="color: #1976D2; font-size: 1.1rem;"></i>
+                                    <div><div style="font-weight: 600; font-size: 0.85rem; color: var(--text-dark);">New Diner registered</div><div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 2px;">1 hour ago</div></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="panel">
+                            <div class="panel-head"><div class="panel-title">Quick Actions</div></div>
+                            <div class="panel-body" style="padding: 1.25rem; display: flex; flex-direction: column; gap: 0.75rem;">
+                                <button class="btn-outline" onclick="switchTab('restaurants'); setTimeout(openRestaurantModal, 100);" style="text-align: left; padding: 0.8rem; border-radius: 6px; cursor: pointer; display: flex; align-items: center; gap: 10px; background: var(--bg-light); border: 1px solid var(--border-light);">
+                                    <i class="fa-solid fa-building" style="color: var(--primary-green);"></i> <span style="font-weight: 600; font-size: 0.85rem; color: var(--text-dark);">Onboard New Restaurant</span>
+                                </button>
+                                <button class="btn-outline" onclick="switchTab('notifications')" style="text-align: left; padding: 0.8rem; border-radius: 6px; cursor: pointer; display: flex; align-items: center; gap: 10px; background: var(--bg-light); border: 1px solid var(--border-light);">
+                                    <i class="fa-solid fa-bullhorn" style="color: #1976D2;"></i> <span style="font-weight: 600; font-size: 0.85rem; color: var(--text-dark);">Compose Broadcast Message</span>
+                                </button>
+                                <button class="btn-outline" onclick="switchTab('reports')" style="text-align: left; padding: 0.8rem; border-radius: 6px; cursor: pointer; display: flex; align-items: center; gap: 10px; background: var(--bg-light); border: 1px solid var(--border-light);">
+                                    <i class="fa-solid fa-chart-pie" style="color: #F57F17;"></i> <span style="font-weight: 600; font-size: 0.85rem; color: var(--text-dark);">View Platform Analytics</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Security Settings -->
+                    <div class="panel" style="margin-top: 1.5rem;">
+                        <div class="panel-head"><div class="panel-title" style="display: flex; align-items: center; gap: 8px;"><i class="fa-solid fa-shield-halved" style="color: var(--primary-green);"></i> Security Settings</div></div>
+                        <div class="panel-body" style="padding: 1.5rem;">
+                            <form id="changePasswordForm" onsubmit="changeSuperPassword(event)" style="max-width: 500px;">
+                                <div class="form-group" style="margin-bottom: 1.2rem;">
+                                    <label>Current Master Password</label>
+                                    <input type="password" id="currentMasterPass" required placeholder="Enter current root access key">
+                                </div>
+                                <div style="display: flex; gap: 1rem; margin-bottom: 1.5rem;">
+                                    <div class="form-group" style="flex: 1; margin: 0;">
+                                        <label>New Master Password</label>
+                                        <input type="password" id="newMasterPass" required placeholder="New secure key">
+                                    </div>
+                                    <div class="form-group" style="flex: 1; margin: 0;">
+                                        <label>Confirm New Password</label>
+                                        <input type="password" id="confirmNewMasterPass" required placeholder="Match new key">
+                                    </div>
+                                </div>
+                                <div style="display: flex; align-items: center; gap: 1rem;">
+                                    <button type="submit" style="background: var(--text-dark); color: white; padding: 0.6rem 1.2rem; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 0.85rem;">Update Security Key</button>
+                                    <span id="passChangeMsg" style="font-size: 0.85rem; font-weight: 500; display: none;"></span>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </section>
+
+                <section id="view-restaurants" class="dashboard-view" style="display: none;">
+                    <div class="dashboard-header">
+                        <div>
+                            <h1>Restaurant Management</h1>
+                            <p>Onboard, verify, and control network nodes.</p>
+                        </div>
+                        <button class="btn-primary" onclick="openRestaurantModal()" style="background: var(--primary-green); color: white; padding: 0.6rem 1.2rem; font-size: 0.85rem; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; box-shadow: 0 4px 12px rgba(95, 122, 97, 0.3);"><i class="fa-solid fa-plus"></i> Add Restaurant</button>
+                    </div>
+                    
+                    <div class="kpi-grid" style="grid-template-columns: repeat(3, 1fr);">
+                        <div class="kpi-card" style="border-left-color: #5F7A61;">
+                            <h4>Total Restaurants</h4>
+                            <p class="value" id="resTabTotalRes">0</p>
+                        </div>
+                        <div class="kpi-card" style="border-left-color: #1976D2;">
+                            <h4>Active Bookings</h4>
+                            <p class="value" id="resTabActiveBooks">0</p>
+                        </div>
+                        <div class="kpi-card" style="border-left-color: #F57F17;">
+                            <h4>Capacity</h4>
+                            <p class="value" id="resTabTotalCapacity">0 <span style="font-size: 1rem; color: #666; font-weight: 500;">seats</span></p>
+                        </div>
+                    </div>
+
+                    <div class="filter-bar" style="margin-bottom: 1.5rem;">
+                        <div class="form-group" style="margin: 0; flex: 1; position: relative;">
+                            <i class="fa-solid fa-magnifying-glass" style="position: absolute; left: 12px; top: 12px; color: var(--text-muted); font-size: 0.9rem;"></i>
+                            <input type="text" id="resDirectorySearch" placeholder="Search Restaurants by name, city, or ID..." style="padding-left: 35px; width: 100%; margin-bottom: 0;" onkeyup="renderGlobalTable()">
+                        </div>
+                        <div class="form-group" style="margin: 0; min-width: 180px;">
+                            <select id="resStatusFilter" onchange="renderGlobalTable()" style="margin-bottom: 0; width: 100%; border: 1px solid var(--border-light); border-radius: 6px; padding: 0.6rem 0.75rem; font-size: 0.85rem; background: white; color: var(--text-dark); cursor: pointer; font-family: inherit;">
+                                <option value="">All Statuses</option>
+                                <option value="Verified">Verified</option>
+                                <option value="Pending">Pending</option>
+                                <option value="Suspended">Suspended</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="table-container">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Restaurant</th>
+                                    <th>Capacity & Bookings</th>
+                                    <th>Restaurant Manager</th>
+                                    <th>Status</th>
+                                    <th style="text-align: right;">System Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="globalRestaurantsBody"></tbody>
+                        </table>
+                    </div>
+                </section>
+
+                <section id="view-users" class="dashboard-view" style="display: none;">
+                    <div class="dashboard-header">
+                        <div>
+                            <h1>User Management</h1>
+                            <p>Global database of Diners, Restaurant Managers, and Restaurant Staff.</p>
+                        </div>
+                        <button class="btn-primary" onclick="openUserModal()" style="background: var(--primary-green); color: white; padding: 0.6rem 1.2rem; font-size: 0.85rem; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; box-shadow: 0 4px 12px rgba(95, 122, 97, 0.3);"><i class="fa-solid fa-user-plus"></i> Add User</button>
+                    </div>
+
+                    <div class="filter-bar" style="margin-bottom: 1.5rem;">
+                        <div class="form-group" style="margin: 0; flex: 1; position: relative;">
+                            <i class="fa-solid fa-magnifying-glass" style="position: absolute; left: 12px; top: 12px; color: var(--text-muted); font-size: 0.9rem;"></i>
+                            <input type="text" id="userDirectorySearch" placeholder="Search Users by ID, name, email, or role..." style="padding-left: 35px; width: 100%; margin-bottom: 0;" onkeyup="renderUsersTable()">
+                        </div>
+                        <div class="form-group" style="margin: 0; min-width: 180px;">
+                            <select id="userRoleFilter" onchange="renderUsersTable()" style="margin-bottom: 0; width: 100%; border: 1px solid var(--border-light); border-radius: 6px; padding: 0.6rem 0.75rem; font-size: 0.85rem; background: white; color: var(--text-dark); cursor: pointer; font-family: inherit;">
+                                <option value="">All Roles</option>
+                                <option value="Diner">Diner</option>
+                                <option value="Restaurant Manager">Restaurant Manager</option>
+                                <option value="Restaurant Staff">Restaurant Staff</option>
+                            </select>
+                        </div>
+                        <div class="form-group" style="margin: 0; min-width: 180px;">
+                            <select id="userStatusFilter" onchange="renderUsersTable()" style="margin-bottom: 0; width: 100%; border: 1px solid var(--border-light); border-radius: 6px; padding: 0.6rem 0.75rem; font-size: 0.85rem; background: white; color: var(--text-dark); cursor: pointer; font-family: inherit;">
+                                <option value="">All Statuses</option>
+                                <option value="Active">Active</option>
+                                <option value="Pending">Pending</option>
+                                <option value="Suspended">Suspended</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="table-container">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>User Details</th>
+                                    <th>System Role</th>
+                                    <th>Linked Restaurant</th>
+                                    <th>Account Status</th>
+                                    <th style="text-align: right;">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="globalUsersBody"></tbody>
+                        </table>
+                    </div>
+                </section>
+
+                <section id="view-reservations" class="dashboard-view" style="display: none;">
+                    <div class="dashboard-header">
+                        <div>
+                            <h1>Reservations</h1>
+                            <p>Track bookings, customer check-ins, and no-shows globally.</p>
+                        </div>
+                    </div>
+                    
+                    <div class="filter-bar" style="margin-bottom: 1.5rem;">
+                        <div class="form-group" style="margin: 0; flex: 1;">
+                            <input type="date" id="resSearchDate" onchange="renderReservationsTable()" style="margin-bottom: 0;">
+                        </div>
+                        <div class="form-group" style="margin: 0; flex: 1;">
+                            <select id="resFilterType" style="margin-bottom: 0;">
+                                <option value="restaurantName">Restaurant Name</option>
+                                <option value="restaurantId">Restaurant ID</option>
+                                <option value="dinerName">Diner Name</option>
+                                <option value="dinerId">Diner ID</option>
+                            </select>
+                        </div>
+                        <div class="form-group" style="margin: 0; flex: 2; position: relative;">
+                            <div>
+                                <i class="fa-solid fa-magnifying-glass" style="position: absolute; left: 12px; bottom: 12px; color: var(--text-muted); font-size: 0.9rem;"></i>
+                                <input type="text" id="resSearchQuery" placeholder="Type to search..." style="padding-left: 35px; width: 100%; margin-bottom: 0;" onkeyup="renderReservationsTable()">
+                            </div>
+                        </div>
+                        <div class="form-group" style="margin: 0; min-width: 190px;">
+                            <select id="resBookingStatusFilter" onchange="renderReservationsTable()" style="margin-bottom: 0; width: 100%; border: 1px solid var(--border-light); border-radius: 6px; padding: 0.6rem 0.75rem; font-size: 0.85rem; background: white; color: var(--text-dark); cursor: pointer; font-family: inherit;">
+                                <option value="">All Booking Statuses</option>
+                                <option value="Booking">Booking</option>
+                                <option value="Customer Check-In">Customer Check-In</option>
+                                <option value="No-Show">No-Show</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="table-container">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Booking ID & Date</th>
+                                    <th>Diner</th>
+                                    <th>Restaurant</th>
+                                    <th>Party Size</th>
+                                    <th>Booking Status</th>
+                                </tr>
+                            </thead>
+                            <tbody id="globalReservationsBody"></tbody>
+                        </table>
+                    </div>
+                </section>
+
+                <section id="view-payments" class="dashboard-view" style="display: none;">
+                    <div class="dashboard-header">
+                        <div>
+                            <h1>Payments</h1>
+                            <p>Platform-wide transaction oversight.</p>
+                        </div>
+                    </div>
+                    
+                    <div class="kpi-grid" style="grid-template-columns: repeat(3, 1fr);">
+                        <div class="kpi-card" style="border-left-color: #2E7D32;">
+                            <h4 style="color: #2E7D32; font-weight: 700;">SUCCESSFUL TRANSACTIONS</h4>
+                            <p class="value">15</p>
+                        </div>
+                        <div class="kpi-card" style="border-left-color: #C62828;">
+                            <h4 style="color: #C62828; font-weight: 700;">FAILED TRANSACTIONS</h4>
+                            <p class="value">1</p>
+                        </div>
+                        <div class="kpi-card" style="border-left-color: #F57F17;">
+                            <h4 style="color: #F57F17; font-weight: 700;">REFUNDS ISSUED</h4>
+                            <p class="value">&#8377;850</p>
+                        </div>
+                    </div>
+
+                    <div class="panel">
+                        <div class="panel-head"><div class="panel-title">Recent Transactions</div></div>
+                        <table style="margin: 0; width: 100%;">
+                            <thead>
+                                <tr>
+                                    <th>TRANSACTION ID</th>
+                                    <th>Diner Details</th>
+                                    <th>Restaurant Details</th>
+                                    <th>Amount</th>
+                                    <th>Payment Gateway</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody id="globalPaymentsBody"></tbody>
+                        </table>
+                    </div>
+                </section>
+
+                <section id="view-reports" class="dashboard-view" style="display: none;">
+                    <div class="dashboard-header">
+                        <div>
+                            <h1>Reports & Analytics</h1>
+                            <p>Platform performance, operational hours, and dining insights.</p>
+                        </div>
+                        <div style="display: flex; gap: 1rem;">
+                        </div>
+                    </div>
+
+                    <div class="filter-bar" style="margin-bottom: 1.5rem;">
+                        <div class="form-group" style="margin: 0; flex: 1;">
+                            <select id="reportScope" onchange="generateReport()" style="margin-bottom: 0;">
+                                <option value="platform">Entire Platform (All Regions)</option>
+                                <option value="Mumbai">Region: Mumbai</option>
+                                <option value="Bangalore">Region: Bangalore</option>
+                                <option value="Delhi">Region: Delhi</option>
+                                <option value="Hyderabad">Region: Hyderabad</option>
+                                <option value="Chennai">Region: Chennai</option>
+                            </select>
+                        </div>
+                        <div class="form-group" style="margin: 0; flex: 1; position: relative;">
+                            <div>
+                                <i class="fa-solid fa-magnifying-glass" style="position: absolute; left: 12px; bottom: 12px; color: var(--text-muted); font-size: 0.9rem;"></i>
+                                <input type="text" id="reportRestaurantSearch" placeholder="Search by Restaurant Name..." style="padding-left: 35px; width: 100%; margin-bottom: 0;" onkeyup="generateReport()">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="reportResults">
+                        <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 1.5rem; margin-bottom: 2rem;">
+                            <div style="background-color: white; padding: 1.25rem; border-radius: 8px; border: 1px solid var(--border-light); box-shadow: var(--shadow-sm);">
+                                <div class="kpi-icon-wrap"><i class="fa-solid fa-store"></i></div>
+                                <p class="value" id="repNodes" style="margin: 0; font-size: 2rem; font-weight: 800; color: var(--text-dark);">0</p>
+                                <h4 style="margin: 0.5rem 0 0 0; color: var(--text-muted); font-size: 0.75rem; font-weight: 600;">Total Restaurants</h4>
+                            </div>
+                            <div style="background-color: white; padding: 1.25rem; border-radius: 8px; border: 1px solid var(--border-light); box-shadow: var(--shadow-sm);">
+                                <div class="kpi-icon-wrap" style="background: #FCE4EC; color: #D81B60;"><i class="fa-solid fa-calendar-check"></i></div>
+                                <p class="value" id="repBook" style="margin: 0; font-size: 2rem; font-weight: 800; color: var(--text-dark);">0</p>
+                                <h4 style="margin: 0.5rem 0 0 0; color: var(--text-muted); font-size: 0.75rem; font-weight: 600;">Total Bookings</h4>
+                            </div>
+                            <div style="background-color: white; padding: 1.25rem; border-radius: 8px; border: 1px solid var(--border-light); box-shadow: var(--shadow-sm);">
+                                <div class="kpi-icon-wrap" style="background: #FFF8E1; color: #F57F17;"><i class="fa-solid fa-indian-rupee-sign"></i></div>
+                                <p class="value" id="repRev" style="margin: 0; font-size: 2rem; font-weight: 800; color: var(--text-dark);">&#8377;0</p>
+                                <h4 style="margin: 0.5rem 0 0 0; color: var(--text-muted); font-size: 0.75rem; font-weight: 600;">Total Payments</h4>
+                            </div>
+                            <div style="background-color: white; padding: 1.25rem; border-radius: 8px; border: 1px solid var(--border-light); box-shadow: var(--shadow-sm);">
+                                <div class="kpi-icon-wrap" style="background: #E8F5E9; color: #2E7D32;"><i class="fa-solid fa-chair"></i></div>
+                                <p class="value" id="repCap" style="margin: 0; font-size: 2rem; font-weight: 800; color: var(--text-dark);">0%</p>
+                                <h4 style="margin: 0.5rem 0 0 0; color: var(--text-muted); font-size: 0.75rem; font-weight: 600;">Table Occupancy</h4>
+                            </div>
+                        </div>
+
+                        <div style="display: grid; grid-template-columns: 1.2fr 1fr; gap: 1.5rem;">
+                            <div style="background-color: white; padding: 1.5rem; border-radius: 8px; border: 1px solid var(--border-light); box-shadow: var(--shadow-sm);">
+                                <h3 style="margin: 0 0 1.2rem 0; font-size: 1rem; color: var(--text-dark);">Bookings by Cuisine</h3>
+                                <div id="cuisineBarsContainer" style="display: flex; flex-direction: column; gap: 1rem;"></div>
+                            </div>
+                            <div style="background-color: white; padding: 1.5rem; border-radius: 8px; border: 1px solid var(--border-light); box-shadow: var(--shadow-sm);">
+                                <h3 style="margin: 0 0 1.2rem 0; font-size: 1rem; color: var(--text-dark);">Top Payments by Restaurant</h3>
+                                <div id="revenueListContainer" style="display: flex; flex-direction: column; gap: 0;"></div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <section id="view-notifications" class="dashboard-view" style="display: none;">
+                    <div class="dashboard-header">
+                        <div>
+                            <h1>Broadcast Center</h1>
+                            <p>Send platform-wide alerts.</p>
+                        </div>
+                    </div>
+                    <div class="panel" style="max-width: 100%;">
+                        <div class="panel-head"><div class="panel-title">Compose Message</div></div>
+                        <div class="panel-body" style="padding: 1.5rem;">
+                            <form onsubmit="sendBroadcast(event)">
+                                <div class="form-group" style="margin-bottom: 1.2rem;">
+                                    <label style="display: block; margin-bottom: 0.4rem;">Target Audience</label>
+                                    <select required style="width: 100%; padding: 0.6rem 0.8rem; border: 1px solid #ccc; border-radius: 6px; font-family: inherit; font-size: 0.85rem;">
+                                        <option value="all">All Users</option>
+                                        <option value="diners">Diners Only</option>
+                                        <option value="managers">Restaurant Managers Only</option>
+                                        <option value="staff">Restaurant Staff Only</option>
+                                    </select>
+                                </div>
+                                <div class="form-group" style="margin-bottom: 1.5rem;">
+                                    <label style="display: block; margin-bottom: 0.4rem;">Message</label>
+                                    <textarea rows="4" required placeholder="Type broadcast message..." style="width: 100%; padding: 0.6rem 0.8rem; border: 1px solid #ccc; border-radius: 6px; font-family: inherit; resize: vertical; font-size: 0.85rem;"></textarea>
+                                </div>
+                                <button type="submit" style="background: var(--primary-green); color: white; padding: 0.6rem 1.2rem; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; display: inline-flex; align-items: center; gap: 8px; font-size: 0.85rem;">
+                                    <i class="fa-solid fa-bullhorn" style="color: #fca5a5;"></i> Send Broadcast
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </section>
+
+                <section id="view-audit" class="dashboard-view" style="display: none;">
+                    <div class="dashboard-header">
+                        <div>
+                            <h1>System Audit Logs</h1>
+                            <p>Complete trace of system actions.</p>
+                        </div>
+                    </div>
+                    <div class="panel">
+                        <div class="panel-head"><div class="panel-title" style="font-weight: 700;">Event Log</div></div>
+                        <div class="panel-body" id="auditLogsContainer" style="padding: 0;">
+                            </div>
+                    </div>
+                </section>
+
+            </main>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="superModal">
+        <div class="modal-content">
+            <h2 id="superModalTitle" style="margin-top:0; border-bottom: 1px solid var(--border-light); padding-bottom: 1rem; font-size: 1.2rem;">Add Restaurant</h2>
+            <form id="superForm">
+                <input type="hidden" id="resId"> 
+                <div style="display: flex; gap: 1.5rem;">
+                    <div style="flex: 1;">
+                        <h4 style="color: var(--primary-green); margin-bottom: 0.75rem; font-size: 0.85rem;">1. Restaurant Configuration</h4>
+                        <div class="form-group"><label>Restaurant Name *</label><input type="text" id="resName" required></div>
+                        <div style="display: flex; gap: 1rem;">
+                            <div class="form-group" style="flex: 1;"><label>Cuisine Type *</label><input type="text" id="resCuisine" required></div>
+                            <div class="form-group" style="width: 100px;"><label>Table Count</label><input type="number" id="resTables" required min="1"></div>
+                        </div>
+                        <div class="form-group"><label>Full Address *</label><input type="text" id="resAddress" required></div>
+                        <div style="display: flex; gap: 1rem;">
+                            <div class="form-group" style="flex: 1;"><label>City *</label><input type="text" id="resCity" required></div>
+                            <div class="form-group" style="flex: 1;"><label>Pincode *</label><input type="text" id="resPincode" required maxlength="6" oninput="this.value = this.value.replace(/[^0-9]/g, '')"></div>
+                        </div>
+                    </div>
+                    <div style="flex: 1;">
+                        <h4 style="color: var(--primary-green); margin-bottom: 0.75rem; font-size: 0.85rem;">2. Restaurant Manager Link</h4>
+                        <div class="form-group"><label>Manager Full Name *</label><input type="text" id="resManagerName" required></div>
+                        <div class="form-group"><label>Auth Email *</label><input type="email" id="resManagerEmail" required></div>
+                        <div class="form-group"><label>Compliance License (FSSAI) *</label><input type="text" id="resLicense" required></div>
+                        <div class="form-group"><label>Time Slots (Operational Hours) *</label><input type="text" id="resTimeSlots" required placeholder="e.g. 10:00 AM - 11:00 PM"></div>
+                        <div class="form-group" style="margin-top: 1.2rem;">
+                            <label>Initial Status Override *</label>
+                            <select id="resStatus" style="background-color: var(--bg-light); border: 1px solid #ccc; font-weight: 500;">
+                                <option value="Verified">Verified (Active)</option>
+                                <option value="Pending">Pending Audit</option>
+                                <option value="Suspended">Table Blocking (Suspended)</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-actions" style="border-top: 1px solid var(--border-light); padding-top: 1.2rem; margin-top: 0.5rem;">
+                    <button type="button" onclick="closeRestaurantModal()" class="btn-outline" style="padding: 0.6rem 1.2rem; border-radius: 6px;">Cancel</button>
+                    <button type="submit" id="saveNodeBtn" style="background: var(--primary-green); color: white; padding: 0.6rem 1.2rem; border: none; border-radius: 6px; cursor: pointer; font-weight: 600;">Save Restaurant</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="userModal">
+        <div class="modal-content" style="max-width: 450px;">
+            <h2 id="userModalTitle" style="margin-top:0; border-bottom: 1px solid var(--border-light); padding-bottom: 1rem; font-size: 1.2rem;">Add User</h2>
+            <form id="userForm">
+                <input type="hidden" id="userId"> 
+                <div class="form-group"><label>Full Name *</label><input type="text" id="userName" required></div>
+                <div class="form-group"><label>Email Address *</label><input type="email" id="userEmail" required></div>
+                
+                <div class="form-group">
+                    <label>System Role *</label>
+                    <select id="userRole" required onchange="toggleRestaurantField()">
+                        <option value="Diner">Diner</option>
+                        <option value="Restaurant Manager">Restaurant Manager</option>
+                        <option value="Restaurant Staff">Restaurant Staff</option>
+                    </select>
+                </div>
+                
+                <div class="form-group" id="userRestaurantGroup" style="display: none;">
+                    <label>Linked Restaurant *</label>
+                    <select id="userNode">
+                        <option value="N/A">None</option>
+                        </select>
+                </div>
+
+                <div class="form-group">
+                    <label>Account Status *</label>
+                    <select id="userStatus" required>
+                        <option value="Active">Active</option>
+                        <option value="Pending">Pending</option>
+                        <option value="Suspended">Suspended</option>
+                    </select>
+                </div>
+
+                <div class="modal-actions" style="border-top: 1px solid var(--border-light); padding-top: 1.2rem; margin-top: 0.5rem;">
+                    <button type="button" onclick="closeUserModal()" class="btn-outline" style="padding: 0.6rem 1.2rem; border-radius: 6px;">Cancel</button>
+                    <button type="submit" style="background: var(--primary-green); color: white; padding: 0.6rem 1.2rem; border: none; border-radius: 6px; cursor: pointer; font-weight: 600;">Save User</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Global Toast Container -->
+    <div id="toast-container"></div>
+
+    <!-- Global Modal Overlay -->
+    <div id="modal-overlay" class="modal-overlay">
+        <div class="modal-card" style="background: white; padding: 2.5rem; border-radius: 16px; width: 100%; max-width: 440px; box-shadow: 0 20px 40px rgba(0,0,0,0.2); text-align: center; border: 1px solid var(--border-light);">
+            <div style="background: #FFF5F5; width: 64px; height: 64px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1.5rem; color: #C1121F; font-size: 1.5rem; border: 1px solid #FFD8D8;">
+                <i class="fa-solid fa-triangle-exclamation"></i>
+            </div>
+            <h3 id="modal-title" style="margin: 0 0 0.75rem; font-size: 1.3rem; font-weight: 800; color: var(--text-dark);">Confirm Action</h3>
+            <p id="modal-message" style="margin: 0 0 2rem; color: var(--text-muted); line-height: 1.6; font-size: 0.95rem;">Are you sure you want to proceed?</p>
+            <div style="display: flex; gap: 1rem;">
+                <button id="btnModalCancel" class="btn-outline" style="flex: 1; padding: 0.8rem; border-radius: 10px; font-weight: 700; cursor: pointer; border: 1px solid var(--border-light); background: transparent;">Cancel</button>
+                <button id="btnModalConfirm" style="flex: 1; padding: 0.8rem; border-radius: 10px; font-weight: 700; cursor: pointer; border: none; background: #C1121F; color: white; box-shadow: 0 4px 12px rgba(193, 18, 31, 0.2);">Proceed</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="../js/super-admin.js"></script>
+</body>
+</html>

@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DineTime - Staff Management</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="logo-container">
+                <img style="width: 38px; height: 38px; border-radius: 8px; object-fit: contain; margin-right: 4px;" src="images/logo.png" alt="DineTime Logo">
+                <div class="logo-text">
+                    <h1>DineTime</h1>
+                    <span>Manager Portal</span>
+                </div>
+            </div>
+            <nav class="main-nav">
+                <ul>
+                    <li class="active">
+                        <a href="index.html"><i class="ph ph-user"></i><span>Profile</span></a>
+                    </li>
+                    <li>
+                        <a href="reservations.html"><i class="ph ph-calendar-blank"></i><span>Reservations</span></a>
+                    </li>
+                    <li>
+                        <a href="menu.html"><i class="ph ph-fork-knife"></i><span>Menu Management</span></a>
+                    </li>
+                    <li>
+                        <a href="time-slots.html"><i class="ph ph-clock"></i><span>Time Slot Management</span></a>
+                    </li>
+                    <li>
+                        <a href="tables.html"><i class="ph ph-squares-four"></i><span>Table and Capacity<br>Management</span></a>
+                    </li>
+                    <li>
+                        <a href="reviews.html"><i class="ph ph-star"></i><span>Customer Reviews</span></a>
+                    </li>
+                </ul>
+            </nav>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <header class="top-header staff-header" style="height:200px; overflow:visible;">
+                <div class="header-overlay" style="background:linear-gradient(to right,rgba(0,0,0,0.8),rgba(0,0,0,0.4));"></div>
+                <div class="header-content">
+                    <div class="header-title">
+                        <a href="index.html" class="back-btn">
+                            <i class="ph ph-arrow-left"></i> Back
+                        </a>
+                        <h2>Staff Management</h2>
+                        <p>Manage staff access requests and control restaurant staff permissions.</p>
+                    </div>
+                    <div class="header-actions">
+                        <div class="user-profile-widget">
+                            <div class="avatar-circle-small"><i class="ph ph-user"></i></div>
+                            <div class="user-info">
+                                <h4 id="header-name"></h4>
+                                <span>Restaurant Manager</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </header>
+
+            <div class="content-wrapper" style="margin-top:-40px;">
+
+                <!-- Stats Row -->
+                <div class="staff-stats">
+                    <div class="staff-stat-card">
+                        <div class="staff-stat-icon stat-icon-pending">
+                            <i class="ph ph-clock"></i>
+                        </div>
+                        <div class="staff-stat-info">
+                            <span class="staff-stat-label">Pending Requests</span>
+                            <span class="staff-stat-value" id="stat-pending">0</span>
+                        </div>
+                    </div>
+                    <div class="staff-stat-card">
+                        <div class="staff-stat-icon stat-icon-approved">
+                            <i class="ph ph-check-circle"></i>
+                        </div>
+                        <div class="staff-stat-info">
+                            <span class="staff-stat-label">Approved Staff</span>
+                            <span class="staff-stat-value" id="stat-approved">0</span>
+                        </div>
+                    </div>
+                    <div class="staff-stat-card">
+                        <div class="staff-stat-icon stat-icon-rejected">
+                            <i class="ph ph-x-circle"></i>
+                        </div>
+                        <div class="staff-stat-info">
+                            <span class="staff-stat-label">Rejected Requests</span>
+                            <span class="staff-stat-value" id="stat-rejected">0</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Filter Bar -->
+                <div class="card staff-filter-bar">
+                    <div class="search-bar">
+                        <i class="ph ph-magnifying-glass"></i>
+                        <input type="text" id="staff-search" placeholder="Search by name or email...">
+                    </div>
+                    <div class="dropdown-wrapper">
+                        <i class="ph ph-funnel"></i>
+                        <select id="staff-filter-status">
+                            <option value="">All Statuses</option>
+                            <option value="Pending">Pending</option>
+                            <option value="Approved">Approved</option>
+                            <option value="Rejected">Rejected</option>
+                        </select>
+                    </div>
+                    <span class="staff-count-label">Showing <strong id="staff-count">0</strong> requests</span>
+                </div>
+
+                <!-- Staff Grid -->
+                <div class="staff-grid" id="staff-grid">
+                    <!-- Rendered dynamically -->
+                </div>
+
+            </div>
+        </main>
+    </div>
+
+    <div id="toast-container" class="toast-container"></div>
+
+    <script src="js/mock-data.js"></script>
+    <script src="js/storage.js"></script>
+    <script src="js/staff.js"></script>
+</body>
+</html>

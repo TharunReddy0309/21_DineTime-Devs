@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DineTime - Manager Login</title>
+    <meta name="description" content="Login to DineTime to manage your restaurant operations and reservations.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body class="login-page">
+
+    <!-- LEFT PANEL -->
+    <div class="login-left">
+        <div class="login-left-overlay"></div>
+        <a href="../Landing/index.html" class="login-back-arrow" >
+            <i class="ph ph-arrow-left"></i>
+        </a>
+        <div class="login-left-brand">
+            <img style="width: 32px; height: 32px; border-radius: 8px; object-fit: contain; margin-right: 8px;" src="images/logo.png" alt="DineTime Logo">
+            <span class="login-left-brand-name">DineTime</span>
+        </div>
+        <div class="login-left-content">
+            <h1>Master Your<br>Operations</h1>
+            <p>Manage tables, track real-time reservations, and optimize your restaurant's performance with ease.</p>
+        </div>
+    </div>
+
+    <!-- RIGHT PANEL -->
+    <div class="login-right">
+
+        <div class="login-right-logo">
+            <img style="width: 40px; height: 40px; border-radius: 10px; object-fit: contain; margin-right: 12px;" src="images/logo.png" alt="DineTime Logo">
+            <span class="login-right-logo-name">DineTime</span>
+        </div>
+
+        <div class="login-card">
+            <h2>Welcome Back</h2>
+            <p class="login-subtitle">Login to manage your restaurant operations and seating</p>
+
+            <form id="login-form" novalidate>
+
+                <!-- Email -->
+                <div class="login-form-group">
+                    <div class="login-label-row">
+                        <label class="login-label" for="email-input">Email or Username</label>
+                    </div>
+                    <div class="login-input-wrapper">
+                        <i class="ph ph-envelope-simple login-input-icon"></i>
+                        <input type="text" id="email-input" class="login-input" placeholder="you@example.com" autocomplete="username">
+                    </div>
+                    <div class="login-field-error" id="email-error">Please enter your email or username.</div>
+                </div>
+
+                <!-- Password -->
+                <div class="login-form-group">
+                    <div class="login-label-row">
+                        <label class="login-label" for="password-input">Password</label>
+                        <a href="#" class="forgot-link" id="forgot-link">Forgot Password?</a>
+                    </div>
+                    <div class="login-input-wrapper">
+                        <i class="ph ph-lock-simple login-input-icon"></i>
+                        <input type="password" id="password-input" class="login-input" placeholder="••••••••" autocomplete="current-password">
+                        <button type="button" class="toggle-eye-btn" id="toggle-eye" aria-label="Toggle password visibility">
+                            <i class="ph ph-eye" id="eye-icon"></i>
+                        </button>
+                    </div>
+                    <div class="login-field-error" id="password-error">Please enter your password.</div>
+                </div>
+
+                <button type="submit" class="btn-login" id="login-btn">Login</button>
+
+                <div class="divider"><span>OR</span></div>
+
+
+
+
+            </form>
+
+
+            <div class="login-register-row">
+                Don't have an account? <a href="register.html" id="create-account-link">Create Account</a>
+            </div>
+
+
+        </div>
+
+        <div class="login-footer">
+            <div class="login-footer-links">
+                <a href="#">Terms of Service</a>
+                <span>•</span>
+                <a href="#">Privacy Policy</a>
+            </div>
+            <div class="login-copyright">© 2026 DineTime. All rights reserved.</div>
+        </div>
+
+    </div>
+
+    <!-- Forgot Password Modal -->
+    <div id="forgotPasswordModal" class="modal hidden">
+        <div class="modal-content">
+            <span class="close-modal" id="closeForgotModal"><i class="ph ph-x"></i></span>
+            <h2>Reset Password</h2>
+            <p style="margin-bottom: 24px; color: var(--text-muted); font-size: 14px;">Enter your email address and we'll send you a link to reset your password.</p>
+            <form id="forgot-password-form">
+                <div class="login-form-group">
+                    <label class="login-label" for="reset-email">Email Address</label>
+                    <input type="email" id="reset-email" class="login-input" placeholder="Enter your email" required style="padding-left:16px;">
+                </div>
+                <button type="submit" class="btn-login" style="margin-top: 10px;">Send Reset Link</button>
+            </form>
+            <div id="reset-success-msg" class="hidden" style="color: var(--primary-green); background: rgba(82, 122, 89, 0.1); padding: 12px; border-radius: 8px; text-align: center; margin-top: 16px; font-weight: 500;">
+                <i class="ph ph-check-circle" style="vertical-align: middle; margin-right: 4px;"></i> A reset link has been sent to your email!
+            </div>
+        </div>
+    </div>
+
+    <div id="toast-container" class="toast-container"></div>
+
+    <script src="js/mock-data.js"></script>
+    <script src="js/storage.js"></script>
+    <script src="js/login.js"></script>
+</body>
+</html>

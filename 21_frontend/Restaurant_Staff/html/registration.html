@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Staff Registration - DineTime</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="../css/registration.css">
+
+    <script src="../../js/data.js"></script>
+</head>
+<body>
+
+    <div class="registration-layout">
+        
+        <!-- Left Features Section -->
+        <div class="features-section">
+            <div class="brand">
+                <img style="width: 32px; height: 32px; border-radius: 8px; object-fit: contain; margin-right: 8px;" src="../images/logo.png" alt="DineTime Logo">
+                <span class="brand-name">DineTime</span>
+            </div>
+            
+            <h1 class="hero-title">Join Restaurant Staff</h1>
+            <p class="hero-desc">Create a staff account to manage reservations, verify check-ins, and assist diners.</p>
+            
+            <ul class="benefits-list">
+                <li>
+                    <div class="icon-box"><i class="fa-regular fa-calendar-check"></i></div>
+                    <span>Manage upcoming reservations</span>
+                </li>
+                <li>
+                    <div class="icon-box"><i class="fa-solid fa-user-check"></i></div>
+                    <span>Verify customer check-ins</span>
+                </li>
+                <li>
+                    <div class="icon-box"><i class="fa-solid fa-border-all"></i></div>
+                    <span>Update table availability</span>
+                </li>
+                <li>
+                    <div class="icon-box"><i class="fa-solid fa-people-group"></i></div>
+                    <span>Improve service coordination</span>
+                </li>
+            </ul>
+
+            <div class="approval-notice">
+                <div class="notice-icon"><i class="fa-regular fa-circle-check"></i></div>
+                <div class="notice-text">
+                    <strong>Manager Approval Required</strong>
+                    <p>All staff accounts must be approved by the restaurant manager before gaining access.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Form Section -->
+        <div class="form-section">
+            <div class="form-container">
+                
+                <div class="form-header">
+                    <h2>Staff Registration</h2>
+                    <p>Submit your details to request staff access.</p>
+                </div>
+
+                <form id="registerForm" class="auth-form">
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="full-name">Full Name</label>
+                            <input type="text" id="full-name" placeholder="Jane Smith" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="email">Email Address</label>
+                            <input type="email" id="email" placeholder="jane@restaurant.com" required>
+                            <span id="email-error" style="display: none; color: #DC2626; font-size: 13px; margin-top: 4px;">This email is already registered.</span>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="phone">Phone Number</label>
+                            <input type="tel" id="phone" placeholder="9876543210" required maxlength="10" oninput="this.value = this.value.replace(/[^0-9]/g, '')">
+                        </div>
+                        <div class="form-group">
+                            <label for="rest-id">Restaurant ID</label>
+                            <input type="text" id="rest-id" placeholder="e.g. RES-1234" required>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="pincode">Home Pincode</label>
+                            <input type="text" id="pincode" placeholder="6-digit pincode" required maxlength="6" oninput="this.value = this.value.replace(/[^0-9]/g, '')">
+                        </div>
+                        <div class="form-group" style="visibility: hidden;">
+                            <label>Placeholder</label>
+                            <input type="text">
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="password">Password</label>
+                            <div class="input-with-icon">
+                                <input type="password" id="password" placeholder="Min. 8 characters" required>
+                                <i class="fa-regular fa-eye toggle-password" data-target="password"></i>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="confirm-password">Confirm Password</label>
+                            <div class="input-with-icon">
+                                <input type="password" id="confirm-password" placeholder="Re-enter password" required>
+                                <i class="fa-regular fa-eye toggle-password" data-target="confirm-password"></i>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <p id="register-error" class="error-message" style="display: none;"></p>
+
+                    <button type="submit" class="btn-primary">Request Staff Access</button>
+                    
+                </form>
+
+                <div class="form-footer">
+                    <p>Already have an account? <a href="login.html">Sign in</a></p>
+                </div>
+            </div>
+        </div>
+        
+    </div>
+
+    <script src="../js/registration.js"></script>
+</body>
+</html>

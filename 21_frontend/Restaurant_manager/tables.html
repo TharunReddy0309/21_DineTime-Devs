@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DineTime - Table and Capacity Management</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Phosphor Icons -->
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <link rel="stylesheet" href="css/style.css">
+    
+    <style>
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 24px;
+            margin-bottom: 24px;
+        }
+
+        .metric-card {
+            background: white;
+            border-radius: 12px;
+            padding: 24px;
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .metric-info h5 {
+            color: #64748B;
+            font-size: 13px;
+            font-weight: 500;
+            margin-bottom: 4px;
+        }
+
+        .metric-info h2 {
+            color: var(--text-dark);
+            font-size: 24px;
+            font-weight: 600;
+        }
+
+        .metric-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            background: #F1F5F9;
+            color: var(--primary-green);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+        }
+
+        .toolbar {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 24px;
+        }
+
+        .btn-outline {
+            background: white;
+            border: 1px solid #E2E8F0;
+            color: var(--text-dark);
+        }
+
+        .btn-outline:hover {
+            background: #F8FAFC;
+        }
+
+        .layout-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 24px;
+            margin-bottom: 24px;
+        }
+
+        .table-area {
+            background-color: #FDF7EF;
+            border-radius: 12px;
+            padding: 40px;
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 24px;
+            align-content: start;
+            min-height: 400px;
+        }
+
+        .table-card {
+            background: white;
+            border-radius: 12px;
+            padding: 24px 16px;
+            text-align: center;
+            cursor: pointer;
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
+            border: 2px solid transparent;
+            transition: all 0.2s ease;
+        }
+
+        .table-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1);
+        }
+
+        .table-card.selected {
+            border-color: var(--primary-green);
+            background-color: #F0FDF4;
+        }
+
+        .table-card h5 {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--text-dark);
+            margin-bottom: 4px;
+        }
+
+        .table-card span {
+            font-size: 13px;
+            color: #64748B;
+        }
+
+        .block-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        select.form-control, input.form-control {
+            width: 100%;
+            border: 1px solid #E2E8F0;
+            padding: 10px 12px;
+            border-radius: 6px;
+            font-size: 14px;
+            outline: none;
+            background: #F8FAFC;
+            color: #475569;
+        }
+        
+        select.form-control:focus, input.form-control:focus {
+            border-color: var(--primary-green);
+            background: white;
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="logo-container">
+                <img style="width: 38px; height: 38px; border-radius: 8px; object-fit: contain; margin-right: 4px;" src="images/logo.png" alt="DineTime Logo">
+                <div class="logo-text">
+                    <h1>DineTime</h1>
+                    <span>Manager Portal</span>
+                </div>
+            </div>
+
+            <nav class="main-nav">
+                <ul>
+                    <li>
+                        <a href="index.html">
+                            <i class="ph ph-user"></i>
+                            <span>Profile</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="reservations.html">
+                            <i class="ph ph-calendar-blank"></i>
+                            <span>Reservations</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="menu.html">
+                            <i class="ph ph-fork-knife"></i>
+                            <span>Menu Management</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="time-slots.html">
+                            <i class="ph ph-clock"></i>
+                            <span>Time Slot Management</span>
+                        </a>
+                    </li>
+                    <li class="active">
+                        <a href="tables.html">
+                            <i class="ph ph-squares-four"></i>
+                            <span>Table and Capacity<br>Management</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="reviews.html">
+                            <i class="ph ph-star"></i>
+                            <span>Customer Reviews</span>
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <header class="top-header" style="height: 180px; background-image: url('images/restaurant.jpg'); background-size: cover; background-position: center;">
+
+                <div class="header-overlay" style="background: linear-gradient(to right, rgba(0,0,0,0.8), rgba(0,0,0,0.4));"></div>
+                <div class="header-content">
+                    <div class="header-title">
+                        <h2>Table Layout Management</h2>
+                        <p>Configure and organize the seating layout of your restaurant.</p>
+                    </div>
+                    <div class="header-actions">
+                        <div class="user-profile-widget">
+                            <div class="avatar-circle-small">
+                                <i class="ph ph-user"></i>
+                            </div>
+                            <div class="user-info">
+                                <h4></h4>
+                                <span>Restaurant Manager</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </header>
+
+            <div class="content-wrapper" style="margin-top: -40px;">
+                
+                <!-- Metrics -->
+                <div class="metrics-grid">
+                    <div class="metric-card">
+                        <div class="metric-info">
+                            <h5>Total Tables</h5>
+                            <h2 id="metric-total-tables">0</h2>
+                        </div>
+                        <div class="metric-icon">
+                            <i class="ph ph-squares-four"></i>
+                        </div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-info">
+                            <h5>Total Capacity</h5>
+                            <h2 id="metric-total-seats">0 Seats</h2>
+                        </div>
+                        <div class="metric-icon">
+                            <i class="ph ph-users"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Toolbar -->
+                <div class="toolbar">
+                    <button class="btn btn-primary-orange" id="toolbar-add-btn">
+                        <i class="ph ph-plus"></i> Add Table
+                    </button>
+                    <button class="btn btn-outline" id="toolbar-remove-btn">
+                        <i class="ph ph-trash"></i> Remove Table
+                    </button>
+                    <button class="btn btn-outline" id="toolbar-duplicate-btn">
+                        <i class="ph ph-copy"></i> Duplicate Table
+                    </button>
+                    <button class="btn btn-outline" id="toolbar-reset-btn">
+                        <i class="ph ph-arrow-counter-clockwise"></i> Reset Layout
+                    </button>
+                </div>
+
+                <!-- Main Grid -->
+                <div class="layout-grid">
+                    <!-- Tables display area -->
+                    <div class="table-area" id="tables-container">
+                        <!-- Populated via JS -->
+                    </div>
+
+                    <!-- Config Panel -->
+                    <div>
+                        <div class="card" style="position: sticky; top: 24px;">
+                            <h4 style="font-size: 16px; font-weight: 600; margin-bottom: 20px;">Table Configuration</h4>
+                            
+                            <form id="table-config-form">
+                                <input type="hidden" id="config-table-id">
+                                <div class="form-group" style="margin-bottom: 16px;">
+                                    <label style="display: block; font-size: 13px; font-weight: 500; color: #475569; margin-bottom: 6px;">Table Number</label>
+                                    <input type="text" id="config-table-number" class="form-control" required placeholder="e.g. Table 1" readonly>
+                                </div>
+                                <div class="form-group" style="margin-bottom: 24px;">
+                                    <label style="display: block; font-size: 13px; font-weight: 500; color: #475569; margin-bottom: 6px;">Seating Capacity</label>
+                                    <select id="config-table-seats" class="form-control" disabled>
+                                        <option value="2">2 Seats</option>
+                                        <option value="4">4 Seats</option>
+                                        <option value="6">6 Seats</option>
+                                        <option value="8">8 Seats</option>
+                                        <option value="10">10 Seats</option>
+                                    </select>
+                                </div>
+                                
+                                <button type="button" id="config-action-btn" class="btn btn-primary-orange" style="width: 100%; margin-bottom: 32px;" disabled>
+                                    Add Table
+                                </button>
+                                
+                            </form>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Block Tables -->
+                <div class="card">
+                    <h4 style="font-size: 16px; font-weight: 600; margin-bottom: 6px;">Block Tables</h4>
+                    <p style="color: #64748B; font-size: 13px; margin-bottom: 20px;">Temporarily block tables for specific time slots</p>
+
+                    <form id="block-table-form">
+                        <div class="block-grid">
+                            <div>
+                                <label style="display: block; font-size: 13px; font-weight: 500; color: #475569; margin-bottom: 6px;">Select Table</label>
+                                <select id="block-table-select" class="form-control" required>
+                                    <option value="" disabled selected>Choose a table</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label style="display: block; font-size: 13px; font-weight: 500; color: #475569; margin-bottom: 6px;">Select Date</label>
+                                <input type="date" id="block-date" class="form-control" required>
+                            </div>
+                            <div>
+                                <label style="display: block; font-size: 13px; font-weight: 500; color: #475569; margin-bottom: 6px;">Select Timeslot</label>
+                                <select id="block-timeslot" class="form-control" required>
+                                    <option value="" disabled selected>Choose timeslot</option>
+                                    <!-- Populated via JS -->
+                                </select>
+                            </div>
+                        </div>
+                        <button type="submit" class="btn" style="background-color: #FF5A5F; color: white; display:flex; align-items:center; gap:6px;">
+                            <i class="ph ph-lock-key"></i> Block Table
+                        </button>
+                    </form>
+
+                    <hr style="border: 0; border-top: 1px dashed #E2E8F0; margin: 24px 0;">
+                    
+                    <h5 style="font-size: 14px; font-weight: 600; margin-bottom: 12px; color: var(--text-dark);">Currently Blocked</h5>
+                    <div id="blocked-tables-list" style="display: flex; flex-direction: column; gap: 12px;">
+                        <!-- JS populated blocked lists -->
+                    </div>
+                </div>
+
+            </div>
+        </main>
+    </div>
+
+    <!-- Toast Container -->
+    <div id="toast-container" class="toast-container"></div>
+    
+    <script src="js/mock-data.js"></script>
+    <script src="js/storage.js"></script>
+    <script src="js/tables.js"></script>
+</body>
+</html>

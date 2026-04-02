@@ -1,0 +1,76 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Request Submitted - DineTime</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="../css/request.css">
+
+    <script src="../../js/data.js"></script>
+</head>
+<body>
+
+    <div class="request-layout">
+        
+        <!-- Left Section -->
+        <div class="request-info-section">
+            <h1 class="hero-title">Request Submitted</h1>
+            <p class="hero-desc">Your staff access request has been sent to the restaurant manager.</p>
+            
+            <ul class="status-steps">
+                <li>
+                    <i class="fa-regular fa-circle-check step-icon"></i>
+                    <span>Your account is currently pending approval</span>
+                </li>
+                <li>
+                    <i class="fa-regular fa-clock step-icon"></i>
+                    <span>The restaurant manager will review your request</span>
+                </li>
+                <li>
+                    <i class="fa-regular fa-envelope step-icon"></i>
+                    <span>You will receive access once approved</span>
+                </li>
+                <li>
+                    <i class="fa-regular fa-bell step-icon"></i>
+                    <span>You can enable notifications for approval updates</span>
+                </li>
+            </ul>
+        </div>
+
+        <!-- Right Card Section -->
+        <div class="request-card-section">
+            <div class="status-card">
+                
+                <div class="status-icon-container">
+                    <div class="status-icon-ring">
+                        <i class="fa-regular fa-clock"></i>
+                    </div>
+                </div>
+
+                <h2>Waiting for Manager Approval</h2>
+                <p>Your request has been successfully submitted. The restaurant manager must approve your staff access before you can log in.</p>
+                
+                <div class="badge-container">
+                    <span class="badge-pending">Pending Approval</span>
+                </div>
+
+                <div class="action-buttons">
+                    <button type="button" class="btn-primary" id="notify-btn">
+                        <i class="fa-regular fa-bell"></i> Notify Me When Approved
+                    </button>
+                    <a href="login.html" class="btn-outline">Back to Login</a>
+                </div>
+                
+                <p class="footer-note">Approval time depends on manager review.</p>
+
+            </div>
+        </div>
+        
+    </div>
+
+    <!-- Small toast helper via JS -->
+    <script src="../js/request.js"></script>
+</body>
+</html>

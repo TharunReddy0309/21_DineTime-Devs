@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DineTime - Menu Management</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        .menu-header {
+            background-image: url('images/hero.jpg');
+
+            background-size: cover;
+            background-position: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="logo-container">
+                <img style="width: 38px; height: 38px; border-radius: 8px; object-fit: contain; margin-right: 4px;" src="images/logo.png" alt="DineTime Logo">
+                <div class="logo-text">
+                    <h1>DineTime</h1>
+                    <span>Manager Portal</span>
+                </div>
+            </div>
+
+            <nav class="main-nav">
+                <ul>
+                    <li>
+                        <a href="index.html">
+                            <i class="ph ph-user"></i>
+                            <span>Profile</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="reservations.html">
+                            <i class="ph ph-calendar-blank"></i>
+                            <span>Reservations</span>
+                        </a>
+                    </li>
+                    <li class="active">
+                        <a href="menu.html">
+                            <i class="ph ph-fork-knife"></i>
+                            <span>Menu Management</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="time-slots.html">
+                            <i class="ph ph-clock"></i>
+                            <span>Time Slot Management</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="tables.html">
+                            <i class="ph ph-squares-four"></i>
+                            <span>Table and Capacity<br>Management</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="reviews.html">
+                            <i class="ph ph-star"></i>
+                            <span>Customer Reviews</span>
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <header class="top-header menu-header" style="height: 180px;">
+                <div class="header-overlay" style="background: linear-gradient(to right, rgba(0,0,0,0.8), rgba(0,0,0,0.5));"></div>
+                <div class="header-content">
+                    <div class="header-title">
+                        <h2>Menu Management</h2>
+                        <p>Manage restaurant menu items and configure availability for specific dates.</p>
+                    </div>
+                    <div class="header-actions">
+                        <div class="user-profile-widget">
+                            <div class="avatar-circle-small">
+                                <i class="ph ph-user"></i>
+                            </div>
+                            <div class="user-info">
+                                <h4></h4>
+                                <span>Restaurant Manager</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </header>
+
+            <div class="content-wrapper" style="margin-top: -40px;">
+                
+                <!-- Select Date Context -->
+                <div class="card" style="margin-bottom: 24px;">
+                    <h4 style="margin-bottom: 12px; font-weight: 600;">Select Date</h4>
+                    <div class="date-picker-box">
+                        <input type="date" id="menu-date-picker" value="2026-03-20" style="border: 1px solid var(--border-color); padding: 8px 12px; border-radius: 6px; outline: none; font-size: 14px; font-weight: 500; cursor: pointer; color: var(--text-dark); background: #F8FAFC;">
+                    </div>
+                    <p style="margin-top: 16px; font-size: 13px; color: var(--text-muted);">
+                        Menu for: <strong style="color: var(--text-dark);" id="menu-date-display">March 20, 2026</strong>
+                    </p>
+                </div>
+
+                <!-- Menu Items Wrapper -->
+                <div class="card menu-items-card">
+                    <div class="menu-card-header">
+                        <h4 style="font-weight: 600; font-size: 18px;">Menu Items</h4>
+                        <button class="btn btn-primary-orange" id="add-menu-btn">
+                            <i class="ph ph-plus"></i> Add Menu Item
+                        </button>
+                    </div>
+
+                    <div id="menu-list-container">
+                        <!-- Categories and Tables rendered dynamically via JS -->
+                    </div>
+                </div>
+                
+            </div>
+        </main>
+    </div>
+
+    <!-- Add/Edit Item Modal -->
+    <div class="modal-overlay" id="add-item-modal" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="modal-title">Add New Menu Item</h3>
+                <button class="icon-btn" id="close-modal-btn" style="background: none; border: none; color: var(--text-dark); cursor: pointer;"><i class="ph ph-x"></i></button>
+            </div>
+            <div class="modal-body">
+                <form id="add-menu-form">
+                    <input type="hidden" id="edit-item-id" value="">
+                    <div class="form-group">
+                        <label>Item Name</label>
+
+                        <input type="text" id="new-item-name" required placeholder="e.g. Samosa Chaat">
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Category</label>
+                            <select id="new-item-cat" required>
+                                <option value="Starters">Starters</option>
+                                <option value="Main Course">Main Course</option>
+                                <option value="Desserts">Desserts</option>
+                                <option value="Beverages">Beverages</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Price (₹)</label>
+                            <input type="number" id="new-item-price" required min="10" placeholder="0">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Upload Product Image</label>
+                        <input type="file" id="new-item-img" accept="image/*" style="padding: 8px 0;">
+                        <small style="color: #64748B; font-size: 11px; display: block; margin-top: 4px;">Recommended: Square image, max 2MB.</small>
+                    </div>
+
+                    <div class="form-actions" style="margin-top: 24px; display: flex; justify-content: flex-end; gap: 12px;">
+                        <button type="button" class="btn" id="cancel-modal-btn" style="background: #F1F5F9; color: var(--text-dark);">Cancel</button>
+                        <button type="submit" class="btn btn-primary-green">Save Item</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Container -->
+    <div id="toast-container" class="toast-container"></div>
+
+    <script src="js/mock-data.js"></script>
+    <script src="js/storage.js"></script>
+    <script src="js/menu.js"></script>
+</body>
+</html>

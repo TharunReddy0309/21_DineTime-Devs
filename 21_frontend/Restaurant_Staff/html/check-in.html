@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Customer Check-In - DineTime</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="../css/check-in.css">
+
+    <script src="../../js/data.js"></script>
+</head>
+<body>
+
+    <!-- Top Navigation (full-width, outside container) -->
+    <header class="top-nav">
+        <div class="nav-inner">
+            <div class="logo-area">
+                <img src="../images/logo.png" alt="DineTime Logo" class="logo" onerror="this.onerror=null; this.src='../../images/logo-placeholder.png'">
+                <div class="brand-text">
+                    <h1>DineTime</h1>
+                    <span>Spice Garden</span>
+                </div>
+            </div>
+            <div class="user-actions">
+                <button class="icon-btn" id="notification-bell">
+                    <span class="bell-wrapper">
+                        <i class="fa-regular fa-bell"></i>
+                    </span>
+                </button>
+                <a href="profile.html" class="user-profile" style="text-decoration:none;" title="View Profile">
+                    <div class="avatar"><i class="fa-solid fa-user"></i></div>
+                    <div class="user-info">
+                        <span class="user-name">Priya Mehta</span>
+                        <span class="user-role">Staff</span>
+                    </div>
+                </a>
+                <button class="icon-btn" id="logout-btn" title="Log Out" style="margin-left: 10px; color: #ef4444;">
+                    <i class="fa-solid fa-right-from-bracket"></i>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Page Container -->
+    <div class="dashboard-container">
+        <main class="main-content">
+            <!-- Header Section -->
+            <section class="page-header">
+                <h2>Customer Check-In</h2>
+                <div class="header-actions">
+                    <button type="button" class="btn-orange" id="add-walkin-trigger"><i class="fa-solid fa-plus"></i> New Check-In</button>
+                    <a href="dashboard.html" class="btn-secondary" style="text-decoration: none;"><i class="fa-solid fa-bars"></i> Manage Tables</a>
+                </div>
+            </section>
+
+            <!-- Filters Section -->
+            <section class="filters-card">
+                <div class="filter-group">
+                    <label>DATE</label>
+                    <div class="input-wrapper">
+                        <i class="fa-regular fa-calendar"></i>
+                        <input type="date" id="filter-date">
+                    </div>
+                </div>
+                <div class="filter-group flex-fill">
+                    <label>TIME SLOT</label>
+                    <div class="input-wrapper">
+                        <i class="fa-regular fa-clock"></i>
+                        <input type="time" id="time-slot-input" class="filter-input">
+                    </div>
+                </div>
+                <div class="filter-status">
+                    Showing results for <strong id="selected-time-slot">All Times</strong>
+                </div>
+            </section>
+
+            <!-- Summary Cards -->
+            <section class="summary-cards">
+                <div class="card">
+                    <div class="card-icon"><i class="fa-solid fa-user-group"></i></div>
+                    <div class="card-info">
+                        <span class="card-val" id="total-count">5</span>
+                        <span class="card-label">Total Reservations</span>
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="card-icon green"><i class="fa-regular fa-circle-check"></i></div>
+                    <div class="card-info">
+                        <span class="card-val green" id="checked-count">2</span>
+                        <span class="card-label">Verified</span>
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="card-icon orange"><i class="fa-regular fa-clock"></i></div>
+                    <div class="card-info">
+                        <span class="card-val orange" id="pending-count">2</span>
+                        <span class="card-label">Pending</span>
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="card-icon red"><i class="fa-regular fa-circle-xmark"></i></div>
+                    <div class="card-info">
+                        <span class="card-val red" id="noshow-count">1</span>
+                        <span class="card-label">No Show</span>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Bookings List Header -->
+            <section class="list-header">
+                <div class="list-title">
+                    <h3>Reservations</h3>
+                    <span class="badge" id="list-total-badge">5 total</span>
+                </div>
+                <div class="list-actions">
+                    <div class="search-box">
+                        <i class="fa-solid fa-magnifying-glass"></i>
+                        <input type="text" placeholder="Search by ID or name...">
+                    </div>
+                </div>
+            </section>
+
+            <!-- Dynamic Bookings List Container -->
+            <section class="bookings-container" id="bookings-list">
+                <!-- Data populated by script.js -->
+            </section>
+        </main>
+    </div>
+
+    <!-- Notifications Modal -->
+    <div id="notifications-modal" class="modal">
+        <div class="modal-content notification-content">
+            <div class="modal-header">
+                <h3>Notifications</h3>
+                <span class="close-btn" id="close-notifications">&times;</span>
+            </div>
+            <div class="notification-body">
+                <p>You have no new notifications</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Walk-In Modal -->
+    <div id="add-walkin-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Add New Walk-In</h3>
+                <span class="close-btn" id="close-walkin-modal">&times;</span>
+            </div>
+            <form id="add-walkin-form">
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label>Customer Name</label>
+                        <input type="text" id="walkin-name" placeholder="e.g. John Doe" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Phone Number</label>
+                        <input type="tel" id="walkin-phone" placeholder="9876543210" required maxlength="10" oninput="this.value = this.value.replace(/[^0-9]/g, '')">
+                    </div>
+                    <div class="form-group">
+                        <label>Number of Guests</label>
+                        <input type="number" id="walkin-guests" value="2" min="1" max="20" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Arrival Time</label>
+                        <input type="time" id="walkin-time" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Assign Table</label>
+                        <select id="walkin-table" required>
+                            <option value="">Select Table...</option>
+                            <option value="Table 1">Table 1 (2 Seater)</option>
+                            <option value="Table 2">Table 2 (2 Seater)</option>
+                            <option value="Table 3">Table 3 (4 Seater)</option>
+                            <option value="Table 4">Table 4 (4 Seater)</option>
+                            <option value="Table 5">Table 5 (6 Seater)</option>
+                            <option value="Table 10">Table 10 (4 Seater)</option>
+                            <option value="Table 12">Table 12 (6 Seater)</option>
+                            <option value="Table 15">Table 15 (8 Seater)</option>
+                            <option value="Table 20">Table 20 (4 Seater)</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-actions">
+                    <button type="button" class="btn-secondary" id="cancel-walkin">Cancel</button>
+                    <button type="submit" class="btn-orange">Confirm & Verify</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    <!-- Global Toast Container -->
+    <div id="toast-container" class="toast-container"></div>
+
+    <!-- Global Modal Overlay -->
+    <div id="modal-overlay" class="modal-overlay">
+        <div class="modal-card">
+            <h3 id="modal-title" class="modal-title">Confirm Action</h3>
+            <p id="modal-message" class="modal-message">Are you sure you want to proceed?</p>
+            <div class="modal-actions">
+                <button id="btnModalCancel" class="btn btn-outline" style="min-width: 100px;">Cancel</button>
+                <button id="btnModalConfirm" class="btn btn-primary" style="min-width: 100px;">Confirm</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="../js/check-in.js"></script>
+</body>
+</html>
