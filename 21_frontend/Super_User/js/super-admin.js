@@ -1,7 +1,7 @@
 /* =========================================================
    js/modules/super-admin.js
    Local Storage Persistent Logic + Domain Dictionary
-   Version: V4 (Auto-resets cache to apply ID additions & 30 Restaurants)
+   Version: V5 (Auto-resets cache to apply ID additions & 30 Restaurants)
    ========================================================= */
 
 const TITLES = {
@@ -15,18 +15,18 @@ const TITLES = {
     audit: ['System Audit Logs', 'Complete trace of system actions.']
 };
 
-// INITIAL DATA ARRAYS (Expanded to 30 Restaurants)
+// INITIAL DATA ARRAYS (Expanded to 10 Restaurants for brevity here, matches your provided code)
 const INIT_RESTAURANTS = [
-    { id: "RES-1001", name: "Spice Garden", cuisine: "North Indian", tables: 20, address: "123 Main St", city: "Bangalore", pincode: "560001", managerName: "Rahul Sharma", managerEmail: "admin@spice.com", license: "FSSAI-123", timeSlots: "10 AM - 10 PM", status: "Verified", activeReservations: 2, lastActive: "2 mins ago" },
-    { id: "RES-1002", name: "The Velvet Fork", cuisine: "Continental", tables: 15, address: "45 West Ave", city: "Mumbai", pincode: "400001", managerName: "Sarah Jenkins", managerEmail: "sarah@velvet.in", license: "FSSAI-992", timeSlots: "11 AM - 11 PM", status: "Suspended", activeReservations: 0, lastActive: "3 days ago" },
-    { id: "RES-1003", name: "Sushi Central", cuisine: "Japanese", tables: 12, address: "Link Road", city: "Mumbai", pincode: "400050", managerName: "Kenji Sato", managerEmail: "kenji@sushi.in", license: "FSSAI-445", timeSlots: "12 PM - 10 PM", status: "Verified", activeReservations: 2, lastActive: "Just now" },
-    { id: "RES-1004", name: "Tuscan Villa", cuisine: "Italian", tables: 25, address: "UB City", city: "Bangalore", pincode: "560001", managerName: "Marco Rossi", managerEmail: "marco@tuscan.com", license: "FSSAI-778", timeSlots: "10 AM - 11 PM", status: "Verified", activeReservations: 2, lastActive: "5 mins ago" },
-    { id: "RES-1005", name: "Delhi Darbar", cuisine: "Mughlai", tables: 30, address: "Connaught", city: "Delhi", pincode: "110001", managerName: "Amit Khan", managerEmail: "amit@darbar.com", license: "FSSAI-112", timeSlots: "11 AM - 12 AM", status: "Pending", activeReservations: 1, lastActive: "1 hour ago" },
-    { id: "RES-1006", name: "Burger Joint", cuisine: "Fast Food", tables: 10, address: "Bandra West", city: "Mumbai", pincode: "400050", managerName: "Priya Patel", managerEmail: "priya@burger.in", license: "FSSAI-334", timeSlots: "10 AM - 11 PM", status: "Verified", activeReservations: 1, lastActive: "10 mins ago" },
-    { id: "RES-1007", name: "Vegan Bites", cuisine: "Healthy", tables: 18, address: "Indiranagar", city: "Bangalore", pincode: "560038", managerName: "John Doe", managerEmail: "john@vegan.com", license: "FSSAI-556", timeSlots: "9 AM - 9 PM", status: "Verified", activeReservations: 2, lastActive: "Just now" },
-    { id: "RES-1008", name: "Dimsum House", cuisine: "Chinese", tables: 14, address: "Powai", city: "Mumbai", pincode: "400076", managerName: "Li Wei", managerEmail: "li@dimsum.in", license: "FSSAI-889", timeSlots: "11 AM - 11 PM", status: "Verified", activeReservations: 1, lastActive: "20 mins ago" },
-    { id: "RES-1009", name: "Southern Spice", cuisine: "South Indian", tables: 22, address: "T Nagar", city: "Chennai", pincode: "600017", managerName: "Karthik Raj", managerEmail: "karthik@southern.in", license: "FSSAI-221", timeSlots: "7 AM - 10 PM", status: "Verified", activeReservations: 2, lastActive: "1 min ago" },
-    { id: "RES-1010", name: "Hyderabad House", cuisine: "Biryani", tables: 28, address: "Jubilee Hills", city: "Hyderabad", pincode: "500033", managerName: "Syed Ali", managerEmail: "syed@hydhouse.com", license: "FSSAI-663", timeSlots: "12 PM - 12 AM", status: "Verified", activeReservations: 2, lastActive: "Just now" }
+    { id: "RES-1001", name: "Spice Garden", cuisine: "North Indian", tables: 20, address: "123 Main St", city: "Bangalore", pincode: "560001", managerName: "Rahul Sharma", managerEmail: "admin@spice.com", license: "12345678901234", timeSlots: "10 AM - 10 PM", status: "Verified", activeReservations: 2, lastActive: "2 mins ago" },
+    { id: "RES-1002", name: "The Velvet Fork", cuisine: "Continental", tables: 15, address: "45 West Ave", city: "Mumbai", pincode: "400001", managerName: "Sarah Jenkins", managerEmail: "sarah@velvet.in", license: "99245678901234", timeSlots: "11 AM - 11 PM", status: "Suspended", activeReservations: 0, lastActive: "3 days ago" },
+    { id: "RES-1003", name: "Sushi Central", cuisine: "Japanese", tables: 12, address: "Link Road", city: "Mumbai", pincode: "400050", managerName: "Kenji Sato", managerEmail: "kenji@sushi.in", license: "44545678901234", timeSlots: "12 PM - 10 PM", status: "Verified", activeReservations: 2, lastActive: "Just now" },
+    { id: "RES-1004", name: "Tuscan Villa", cuisine: "Italian", tables: 25, address: "UB City", city: "Bangalore", pincode: "560001", managerName: "Marco Rossi", managerEmail: "marco@tuscan.com", license: "77845678901234", timeSlots: "10 AM - 11 PM", status: "Verified", activeReservations: 2, lastActive: "5 mins ago" },
+    { id: "RES-1005", name: "Delhi Darbar", cuisine: "Mughlai", tables: 30, address: "Connaught", city: "Delhi", pincode: "110001", managerName: "Amit Khan", managerEmail: "amit@darbar.com", license: "11245678901234", timeSlots: "11 AM - 12 AM", status: "Pending", activeReservations: 1, lastActive: "1 hour ago" },
+    { id: "RES-1006", name: "Burger Joint", cuisine: "Fast Food", tables: 10, address: "Bandra West", city: "Mumbai", pincode: "400050", managerName: "Priya Patel", managerEmail: "priya@burger.in", license: "33445678901234", timeSlots: "10 AM - 11 PM", status: "Verified", activeReservations: 1, lastActive: "10 mins ago" },
+    { id: "RES-1007", name: "Vegan Bites", cuisine: "Healthy", tables: 18, address: "Indiranagar", city: "Bangalore", pincode: "560038", managerName: "John Doe", managerEmail: "john@vegan.com", license: "55645678901234", timeSlots: "9 AM - 9 PM", status: "Verified", activeReservations: 2, lastActive: "Just now" },
+    { id: "RES-1008", name: "Dimsum House", cuisine: "Chinese", tables: 14, address: "Powai", city: "Mumbai", pincode: "400076", managerName: "Li Wei", managerEmail: "li@dimsum.in", license: "88945678901234", timeSlots: "11 AM - 11 PM", status: "Verified", activeReservations: 1, lastActive: "20 mins ago" },
+    { id: "RES-1009", name: "Southern Spice", cuisine: "South Indian", tables: 22, address: "T Nagar", city: "Chennai", pincode: "600017", managerName: "Karthik Raj", managerEmail: "karthik@southern.in", license: "22145678901234", timeSlots: "7 AM - 10 PM", status: "Verified", activeReservations: 2, lastActive: "1 min ago" },
+    { id: "RES-1010", name: "Hyderabad House", cuisine: "Biryani", tables: 28, address: "Jubilee Hills", city: "Hyderabad", pincode: "500033", managerName: "Syed Ali", managerEmail: "syed@hydhouse.com", license: "66345678901234", timeSlots: "12 PM - 12 AM", status: "Verified", activeReservations: 2, lastActive: "Just now" }
 ];
 
 const INIT_USERS = [
@@ -63,7 +63,7 @@ const INIT_AUDIT = [
     { time: "09:15:00", message: "Broadcast notification sent to all Diners" }
 ];
 
-// INITIALIZATION (Using v4 keys)
+// INITIALIZATION (Using v5 keys)
 window.onload = function() {
     if(!localStorage.getItem('dt_admin_res_v5')) localStorage.setItem('dt_admin_res_v5', JSON.stringify(INIT_RESTAURANTS));
     if(!localStorage.getItem('dt_admin_usr_v5')) localStorage.setItem('dt_admin_usr_v5', JSON.stringify(INIT_USERS));
@@ -90,17 +90,30 @@ window.onload = function() {
     if(superForm) {
         superForm.onsubmit = function(event) {
             event.preventDefault(); 
+            
+            // STRICT JS VALIDATIONS (As fallback to HTML5 Pattern Validation)
+            const pincodeVal = document.getElementById('resPincode').value;
+            if (!/^\d{6}$/.test(pincodeVal)) {
+                showToast("Pincode must be exactly 6 digits.", "error");
+                return;
+            }
+
+            const emailVal = document.getElementById('resManagerEmail').value;
+            if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailVal)) {
+                showToast("Invalid manager email format.", "error");
+                return;
+            }
+
+            const fssaiVal = document.getElementById('resLicense').value;
+            if (!/^\d{14}$/.test(fssaiVal)) {
+                showToast("FSSAI License must be exactly 14 digits.", "error");
+                return;
+            }
+            
             var saveBtn = document.getElementById('saveNodeBtn');
             saveBtn.innerHTML = "Processing...";
 
             setTimeout(function() {
-                const pincodeVal = document.getElementById('resPincode').value;
-                if (!/^\d{6}$/.test(pincodeVal)) {
-                    showToast("Pincode must be exactly 6 digits.", "error");
-                    saveBtn.innerHTML = "Save Restaurant";
-                    return;
-                }
-
                 var newRes = {
                     name: document.getElementById('resName').value,
                     cuisine: document.getElementById('resCuisine').value,
@@ -109,8 +122,8 @@ window.onload = function() {
                     city: document.getElementById('resCity').value,
                     pincode: pincodeVal,
                     managerName: document.getElementById('resManagerName').value,
-                    managerEmail: document.getElementById('resManagerEmail').value,
-                    license: document.getElementById('resLicense').value,
+                    managerEmail: emailVal,
+                    license: fssaiVal,
                     timeSlots: document.getElementById('resTimeSlots').value,
                     status: document.getElementById('resStatus').value,
                     activeReservations: 0, 
@@ -151,9 +164,16 @@ window.onload = function() {
         userForm.onsubmit = function(event) {
             event.preventDefault();
             
+            // STRICT JS EMAIL VALIDATION
+            const userEmailVal = document.getElementById('userEmail').value;
+            if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(userEmailVal)) {
+                showToast("Invalid user email format.", "error");
+                return;
+            }
+            
             var newUser = {
                 name: document.getElementById('userName').value,
-                email: document.getElementById('userEmail').value,
+                email: userEmailVal,
                 role: document.getElementById('userRole').value,
                 node: document.getElementById('userRole').value === 'Diner' ? 'N/A' : document.getElementById('userNode').value,
                 status: document.getElementById('userStatus').value
@@ -181,6 +201,53 @@ window.onload = function() {
             renderUsersTable();
             showToast(isNew ? "User added successfully." : "User details updated.", "success");
             addAuditLog(isNew ? "Created new user account for " + newUser.email : "Modified user account " + newUser.email);
+        };
+    }
+
+    // Setup Reservation Form
+    var reservationForm = document.getElementById('reservationForm');
+    if(reservationForm) {
+        reservationForm.onsubmit = function(event) {
+            event.preventDefault();
+            
+            var resSelect = document.getElementById('bkgRestaurant');
+            var selectedResName = resSelect.options[resSelect.selectedIndex].text;
+            var selectedResId = resSelect.value; 
+
+            var newBkg = {
+                dinerName: document.getElementById('bkgDinerName').value,
+                dinerId: document.getElementById('bkgDinerId').value || "GUEST",
+                restaurantName: selectedResName,
+                restaurantId: selectedResId,
+                date: document.getElementById('bkgDate').value,
+                time: document.getElementById('bkgTime').value,
+                party: parseInt(document.getElementById('bkgParty').value),
+                status: document.getElementById('bkgStatus').value
+            };
+
+            var editingId = document.getElementById('bkgId').value;
+            let bkgData = JSON.parse(localStorage.getItem('dt_admin_bkg_v5')) || [];
+            var isNew = true;
+
+            if (editingId !== "") {
+                for (var i = 0; i < bkgData.length; i++) {
+                    if (bkgData[i].id === editingId) {
+                        newBkg.id = editingId;
+                        bkgData[i] = newBkg; 
+                        isNew = false; break;
+                    }
+                }
+            } else {
+                newBkg.id = "BKG-" + Math.floor(Math.random() * 90000 + 10000);
+                bkgData.push(newBkg); 
+            }
+
+            localStorage.setItem('dt_admin_bkg_v5', JSON.stringify(bkgData));
+            closeReservationModal();
+            renderReservationsTable();
+            updateAllKPIs(); 
+            showToast(isNew ? "Reservation added successfully." : "Reservation updated.", "success");
+            addAuditLog(isNew ? "Created reservation for " + newBkg.dinerName : "Modified reservation " + newBkg.id);
         };
     }
 };
@@ -443,7 +510,7 @@ window.deleteUser = function(id, email) {
     );
 }
 
-// --- RESERVATIONS (Date Filter & Search) ---
+// --- NEW: RESERVATIONS CRUD & SEARCH ---
 window.renderReservationsTable = function() {
     var tbody = document.getElementById('globalReservationsBody');
     if (!tbody) return;
@@ -481,9 +548,85 @@ window.renderReservationsTable = function() {
             "<td><code style='background: #f0f0f0; padding: 2px 4px; border-radius: 4px; color: var(--text-muted); font-size: 0.7rem;'>" + r.dinerId + "</code><br><b style='display:inline-block; margin-top:4px;'>" + r.dinerName + "</b></td>" +
             "<td><code style='background: #f0f0f0; padding: 2px 4px; border-radius: 4px; color: var(--text-muted); font-size: 0.7rem;'>" + r.restaurantId + "</code><br><b style='display:inline-block; margin-top:4px;'>" + r.restaurantName + "</b></td>" +
             "<td>" + r.party + "</td>" +
-            "<td>" + badgeHTML + "</td>";
+            "<td>" + badgeHTML + "</td>" +
+            "<td style='text-align: right; vertical-align: middle;'>" +
+                "<div style='display: flex; justify-content: flex-end; align-items: center; gap: 0.5rem;'>" +
+                    "<button class='btn-outline btn-sm' style='color: #E67E22; border-color: #E67E22; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; padding: 0;' onclick='editReservation(\"" + r.id + "\")' title='View / Edit'><i class='fa-solid fa-eye'></i></button>" +
+                    "<button class='btn-outline btn-sm' style='color: #C62828; border-color: #ffcdd2; background: #FFEBEE; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; padding: 0;' onclick='deleteReservation(\"" + r.id + "\", \"" + r.dinerName + "\")' title='Delete Reservation'><i class='fa-solid fa-trash'></i></button>" +
+                "</div>" +
+            "</td>";
         tbody.appendChild(row);
     }
+}
+
+window.openReservationModal = function() {
+    document.getElementById('reservationForm').reset();
+    document.getElementById('bkgId').value = "";
+    document.getElementById('reservationModalTitle').innerHTML = "Add Reservation";
+    
+    // --- UPDATED: Restrict Date to Today and Any Future Date ---
+    const today = new Date();
+    // Format to YYYY-MM-DD for HTML5 date input
+    const todayStr = today.toISOString().split('T')[0];
+
+    const dateInput = document.getElementById('bkgDate');
+    dateInput.min = todayStr;
+    dateInput.removeAttribute('max'); // Removes the "tomorrow" limit
+    // -----------------------------------------------------------
+
+    let resData = JSON.parse(localStorage.getItem('dt_admin_res_v5')) || [];
+    let resSelect = document.getElementById('bkgRestaurant');
+    resSelect.innerHTML = '<option value="">Select Restaurant...</option>';
+    resData.forEach(r => {
+        resSelect.innerHTML += `<option value="${r.id}">${r.name}</option>`;
+    });
+    
+    document.getElementById('reservationModal').style.display = "flex";
+}
+
+window.closeReservationModal = function() { 
+    document.getElementById('reservationModal').style.display = "none"; 
+}
+
+window.editReservation = function(id) {
+    let bkgData = JSON.parse(localStorage.getItem('dt_admin_bkg_v5')) || [];
+    var target = bkgData.find(r => r.id === id);
+    if (target) {
+        document.getElementById('bkgId').value = target.id;
+        document.getElementById('bkgDinerName').value = target.dinerName;
+        document.getElementById('bkgDinerId').value = target.dinerId;
+        
+        let resData = JSON.parse(localStorage.getItem('dt_admin_res_v5')) || [];
+        let resSelect = document.getElementById('bkgRestaurant');
+        resSelect.innerHTML = '<option value="">Select Restaurant...</option>';
+        resData.forEach(r => {
+            resSelect.innerHTML += `<option value="${r.id}" ${r.id === target.restaurantId ? 'selected' : ''}>${r.name}</option>`;
+        });
+        
+        document.getElementById('bkgDate').value = target.date;
+        document.getElementById('bkgTime').value = target.time;
+        document.getElementById('bkgParty').value = target.party;
+        document.getElementById('bkgStatus').value = target.status;
+        
+        document.getElementById('reservationModalTitle').innerHTML = "View / Edit Reservation";
+        document.getElementById('reservationModal').style.display = "flex";
+    }
+}
+
+window.deleteReservation = function(id, dinerName) {
+    showConfirmModal(
+        "Delete Reservation",
+        "Are you sure you want to delete the reservation for " + dinerName + "?",
+        () => {
+            let bkgData = JSON.parse(localStorage.getItem('dt_admin_bkg_v5')) || [];
+            bkgData = bkgData.filter(r => r.id !== id);
+            localStorage.setItem('dt_admin_bkg_v5', JSON.stringify(bkgData));
+            renderReservationsTable();
+            updateAllKPIs();
+            showToast("Reservation deleted.", "error");
+            addAuditLog("Deleted reservation for " + dinerName);
+        }
+    );
 }
 
 // --- PAYMENTS ---
@@ -603,47 +746,6 @@ window.sendBroadcast = function(event) {
     showToast("Broadcast message sent successfully.", "success");
     addAuditLog("Sent broadcast message to selected users");
     event.target.reset();
-}
-
-// --- SECURITY ---
-window.changeSuperPassword = function(event) {
-    event.preventDefault();
-    const currPass = document.getElementById('currentMasterPass').value;
-    const newPass = document.getElementById('newMasterPass').value;
-    const confPass = document.getElementById('confirmNewMasterPass').value;
-    const msg = document.getElementById('passChangeMsg');
-
-    const masterPass = localStorage.getItem('admin_password') || 'admin123';
-
-    if (currPass !== masterPass) {
-        msg.style.display = 'block';
-        msg.style.color = '#C62828';
-        msg.innerHTML = "<i class='fa-solid fa-triangle-exclamation'></i> Authentication failed";
-        return;
-    }
-
-    if (newPass !== confPass) {
-        msg.style.display = 'block';
-        msg.style.color = '#C62828';
-        msg.innerHTML = "<i class='fa-solid fa-triangle-exclamation'></i> Keys do not match";
-        return;
-    }
-
-    if (newPass.length < 5) {
-        msg.style.display = 'block';
-        msg.style.color = '#F57F17';
-        msg.innerHTML = "<i class='fa-solid fa-circle-info'></i> Key too short (Min: 5)";
-        return;
-    }
-
-    localStorage.setItem('admin_password', newPass);
-    msg.style.display = 'block';
-    msg.style.color = '#2E7D32';
-    msg.innerHTML = "<i class='fa-solid fa-circle-check'></i> Key Updated.";
-    
-    document.getElementById('changePasswordForm').reset();
-    showToast("Master Security Key has been updated.", "success");
-    addAuditLog("Super Admin modified vault credential key");
 }
 
 window.logoutSuperAdmin = function() {
