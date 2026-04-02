@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DineTime - Payment Method</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link rel="stylesheet" href="../css/global.css">
+    <link rel="stylesheet" href="../css/payment_method.css">
+
+    <script src="../../js/data.js"></script>
+</head>
+<body class="layout-stacked">
+    <header style="background: var(--surface); border-bottom: 1px solid var(--border); padding: 14px 24px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 50; box-shadow: var(--shadow-sm);">
+        <div style="display: flex; align-items: center; gap: 8px; cursor: pointer;" onclick="window.location.href='browse.html'">
+            <img src="../images/logo.png" alt="DineTime Logo" height="28">
+            <span style="font-size: 1.1rem; font-weight: 700; color: var(--text-main);">DineTime</span>
+        </div>
+        <div>
+            <i class="fa-regular fa-user" style="font-size: 1.3rem; color: var(--text-muted); cursor: pointer; padding: 6px; border-radius: 50%;" onclick="window.location.href='profile.html'"></i>
+        </div>
+    </header>
+
+    <main class="page-main">
+        <div class="payment-card">
+            <h1 class="page-title">Choose Payment Method</h1>
+
+            <div class="methods-list" id="methodsList"></div>
+
+            <div class="secure-badge">
+                <i class="fa-solid fa-lock secure-icon"></i>
+                <span>Secure payment powered by encrypted transactions</span>
+            </div>
+
+            <button class="btn-pay" id="btnPay">Pay <span id="payAmount"></span></button>
+
+            <div class="back-link-wrap">
+                <a href="payment_making.html" class="back-link" id="backLink">
+                    <i class="fa-solid fa-arrow-left"></i> Back to Reservation Summary
+                </a>
+            </div>
+        </div>
+    </main>
+
+    <script src="../js/store.js"></script>
+    <script src="../js/payment_method.js"></script>
+</body>
+</html>

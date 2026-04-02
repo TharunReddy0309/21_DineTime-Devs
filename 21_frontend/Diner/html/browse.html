@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DineTime</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link rel="stylesheet" href="../css/global.css">
+    <link rel="stylesheet" href="../css/browse.css">
+
+    <script src="../../js/data.js"></script>
+</head>
+<body class="bg-gray-50">
+    
+    <aside class="sidebar">
+        <div class="sidebar-logo">
+            <img src="../images/logo.png" alt="DineTime Logo" />
+            <h2>DineTime</h2>
+        </div>
+        
+        <nav class="sidebar-nav">
+            <a href="profile.html" class="nav-item">
+                <i class="fa-regular fa-user"></i>
+                Profile
+            </a>
+            <a href="reservations.html" class="nav-item">
+                <i class="fa-regular fa-calendar-check"></i>
+                My Reservations
+            </a>
+            <a href="#" class="nav-item active">
+                <i class="fa-solid fa-utensils"></i>
+                Browse Restaurants
+            </a>
+            <a href="settings.html" class="nav-item">
+                <i class="fa-solid fa-gear"></i>
+                Settings
+            </a>
+        </nav>
+    </aside>
+
+    <main class="main-content">
+        <header class="top-header">
+            <div class="search-container">
+                <img src="../images/icon-search.png" alt="Search" class="search-icon" width="25" height="25" />
+                <input type="text" id="searchInput" class="search-input" placeholder="Search restaurants, cuisines, or locations">
+                <button id="filterIconBtn" class="filter-icon-btn" aria-label="Filters">
+                    <img src="../images/icon-filter.png" alt="Filter" width="20" height="20" />
+                </button>
+            </div>
+            
+            <div id="filterDropdown" class="filter-dropdown hidden">
+                <div class="filter-dropdown-header">
+                    <div>
+                        <h3>Filters</h3>
+                        <p>Refine restaurants based on your preferences</p>
+                    </div>
+                    <button id="closeFilterBtn" class="filter-close-btn">&times;</button>
+                </div>
+                <div class="filter-dropdown-body">
+                    <div class="filter-section">
+                        <h4>Minimum Rating</h4>
+                        <div class="filter-options-list">
+                            <label><input type="radio" name="minRating" value="4.5"> <span>4.5 and above</span></label>
+                            <label><input type="radio" name="minRating" value="4.0"> <span>4.0 and above</span></label>
+                            <label><input type="radio" name="minRating" value="3.5"> <span>3.5 and above</span></label>
+                            <label><input type="radio" name="minRating" value="0" checked> <span>Any rating</span></label>
+                        </div>
+                    </div>
+
+                    <div class="filter-section">
+                        <div class="flex-between">
+                            <h4>Distance</h4>
+                            <span class="value-display orange-text" id="distanceVal">10 km</span>
+                        </div>
+                        <div class="slider-wrapper">
+                            <input type="range" id="distanceSlider" class="orange-slider" min="1" max="10" value="10">
+                            <div class="slider-labels"><span>1 km</span><span>10 km</span></div>
+                        </div>
+                    </div>
+
+                    <div class="filter-section">
+                        <h4>Available Time</h4>
+                        <select id="timeSelect" class="custom-select">
+                            <option value="">Any Time</option>
+                            <option value="6:00 PM">6:00 PM</option>
+                            <option value="7:00 PM">7:00 PM</option>
+                            <option value="8:00 PM">8:00 PM</option>
+                            <option value="9:00 PM">9:00 PM</option>
+                        </select>
+                    </div>
+
+                    <div class="filter-section">
+                        <h4>Cuisine Type</h4>
+                        <div class="filter-options-list">
+                            <label><input type="checkbox" name="cuisineType" value="Italian"> <span>Italian</span></label>
+                            <label><input type="checkbox" name="cuisineType" value="Chinese"> <span>Chinese</span></label>
+                            <label><input type="checkbox" name="cuisineType" value="Indian"> <span>Indian</span></label>
+                            <label><input type="checkbox" name="cuisineType" value="Japanese"> <span>Japanese</span></label>
+                            <label><input type="checkbox" name="cuisineType" value="Mexican"> <span>Mexican</span></label>
+                        </div>
+                    </div>
+                </div>
+                <div class="filter-dropdown-footer">
+                    <button id="resetFiltersBtn" class="btn btn-outline-orange">Reset Filters</button>
+                    <button id="applyFiltersBtn" class="btn btn-primary-orange">Apply Filters</button>
+                </div>
+            </div>
+        </header>
+
+        <div class="page-body container">
+
+            <section class="section cuisine-section">
+                <h2>Browse by Cuisine</h2>
+                <div class="cuisine-scroll" id="cuisineScroll"></div>
+            </section>
+
+            <section id="top-rated-section" class="section">
+                <h2>Top Rated Restaurants</h2>
+                <div id="top-rated-list" class="restaurant-horizontal-grid"></div>
+            </section>
+
+            <section id="popular-section" class="section" style="margin-top: 32px;">
+                <h2>Popular Near You</h2>
+                <div id="popular-near-you-list" class="restaurant-horizontal-grid"></div>
+            </section>
+
+            <section id="search-results-section" class="section hidden">
+                <div class="results-header"><h2 id="resultsCount"></h2></div>
+                <div id="restaurant-list" class="restaurant-horizontal-grid"></div>
+            </section>
+                
+            <div id="no-results" class="empty-state hidden" style="margin-top: 32px;">
+                <div class="empty-icon">
+                    <i class="fa-solid fa-utensils" style="font-size: 3rem; color: #cbd5e1; margin-bottom: 1rem;"></i>
+                </div>
+                <h3>No restaurants match</h3>
+                <p>Try adjusting your search.</p>
+            </div>
+        </div>
+    </main>
+
+    <script src="../js/store.js"></script>
+    <script src="../js/browse.js"></script>
+</body>
+</html>

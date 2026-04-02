@@ -1,0 +1,119 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DineTime - Reservation Details</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link rel="stylesheet" href="../css/global.css">
+    <link rel="stylesheet" href="../css/details.css">
+
+    <script src="../../js/data.js"></script>
+</head>
+<body>
+
+    <aside class="sidebar">
+        <div class="sidebar-logo">
+            <img src="../images/logo.png" alt="DineTime Logo" />
+            <h2>DineTime</h2>
+        </div>
+        <nav class="sidebar-nav">
+            <a href="profile.html" class="nav-item">
+                <i class="fa-regular fa-user"></i>
+                Profile
+            </a>
+            <a href="reservations.html" class="nav-item active">
+                <i class="fa-regular fa-calendar-check"></i>
+                My Reservations
+            </a>
+            <a href="browse.html" class="nav-item">
+                <i class="fa-solid fa-utensils"></i>
+                Browse Restaurants
+            </a>
+            <a href="settings.html" class="nav-item">
+                <i class="fa-solid fa-gear"></i>
+                Settings
+            </a>
+        </nav>
+    </aside>
+
+    <main class="main-content">
+
+        <div class="hero-banner">
+            <div class="hero-overlay"></div>
+            <div class="hero-text">
+                <h1 class="hero-title">Reservation Check-In</h1>
+                <p class="hero-sub">Confirm your arrival and get seated quickly</p>
+            </div>
+            <div class="hero-user">
+                <i class="fa-regular fa-user hero-user-icon" onclick="window.location.href='profile.html'"></i>
+            </div>
+        </div>
+
+        <div class="content-area">
+
+            <div class="card card-pass" id="reservationPass">
+                <div class="pass-header">
+                    <img id="resThumb" src="" alt="" class="pass-thumb">
+                    <div class="pass-title-row">
+                        <div class="pass-title-info">
+                            <h2 class="pass-restaurant" id="resName">Restaurant Name</h2>
+                            <p class="pass-cuisine" id="resCuisine">Cuisine Category</p>
+                        </div>
+                        <div id="resBadge"></div>
+                    </div>
+                </div>
+
+                <div class="pass-body">
+                    <div class="pass-info-grid" id="resInfoGrid">
+                    </div>
+
+                    <div class="pass-location">
+                        <span class="detail-label"><i class="fa-solid fa-location-dot"></i> Restaurant Location</span>
+                        <span class="detail-value" id="resLocation">Loading location...</span>
+                    </div>
+                </div>
+
+                <div class="pass-footer">
+                    <div class="pass-qr-section" id="qrSection">
+                        <div class="qr-wrapper-static">
+                            <img src="../images/qr-code.png" alt="Reservation QR Code" class="qr-image-static" id="qrImage">
+                            <p class="qr-label"><i class="fa-solid fa-qrcode"></i> Scan to Check-In</p>
+                        </div>
+                        <div class="qr-info">
+                            <p class="qr-hint">Please present this QR code at the restaurant entrance to confirm your arrival and get seated.</p>
+                            <p class="res-id-label">Reservation ID: <span id="resIdDisplay">DT-XXXXX</span></p>
+                        </div>
+                    </div>
+                    
+                    <div class="pass-qr-section hidden" id="cancelledSection" style="margin-top:20px;">
+                        <div class="qr-info" style="color: var(--text-muted);">
+                           <p><strong>This reservation was cancelled.</strong></p>
+                           <p>You may book another reservation by browsing available restaurants.</p>
+                        </div>
+                    </div>
+
+                    <div id="menuButtonContainer" class="menu-btn-container hidden">
+                        <button class="btn-menu" id="btnViewMenu">
+                            <i class="fa-solid fa-utensils"></i> View Restaurant Menu
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <button class="btn-back" id="btnBack">
+                <i class="fa-solid fa-arrow-left"></i> Back to My Reservations
+            </button>
+
+        </div>
+    <!-- Global Toast Container -->
+    <div id="toast-container"></div>
+    </main>
+
+    <script src="../js/store.js"></script>
+    <script src="../js/details.js"></script>
+</body>
+</html>

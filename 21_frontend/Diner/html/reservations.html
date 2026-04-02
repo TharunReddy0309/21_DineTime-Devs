@@ -1,0 +1,105 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DineTime - My Reservations</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link rel="stylesheet" href="../css/global.css">
+    <link rel="stylesheet" href="../css/reservations.css">
+
+    <script src="../../js/data.js"></script>
+</head>
+<body>
+
+    <aside class="sidebar">
+        <div class="sidebar-logo">
+            <img src="../images/logo.png" alt="DineTime Logo" />
+            <h2>DineTime</h2>
+        </div>
+        <nav class="sidebar-nav">
+            <a href="profile.html" class="nav-item">
+                <i class="fa-regular fa-user"></i>
+                Profile
+            </a>
+            <a href="#" class="nav-item active">
+                <i class="fa-regular fa-calendar-check"></i>
+                My Reservations
+            </a>
+            <a href="browse.html" class="nav-item">
+                <i class="fa-solid fa-utensils"></i>
+                Browse Restaurants
+            </a>
+            <a href="settings.html" class="nav-item">
+                <i class="fa-solid fa-gear"></i>
+                Settings
+            </a>
+        </nav>
+    </aside>
+
+    <main class="main-content">
+
+        <div class="hero-banner">
+            <div class="hero-overlay"></div>
+            <div class="hero-text">
+                <h1 class="hero-title">My Reservations</h1>
+                <p class="hero-sub">View and manage all your restaurant reservations.</p>
+            </div>
+            <div class="hero-user">
+                <i class="fa-regular fa-user hero-user-icon" onclick="window.location.href='profile.html'"></i>
+            </div>
+        </div>
+
+        <div class="content-area">
+
+            <div class="filters-card">
+                <div class="search-row">
+                    <i class="fa-solid fa-magnifying-glass search-icon"></i>
+                    <input type="text" id="searchInput" class="search-input" placeholder="Search reservations by restaurant name">
+                </div>
+                <div class="filter-row">
+                    <div class="filter-select-wrap">
+                        <i class="fa-regular fa-calendar filter-select-icon"></i>
+                        <input type="date" id="dateFilter" class="filter-select" placeholder="Filter by Date">
+                    </div>
+                    <div class="filter-select-wrap">
+                        <i class="fa-regular fa-clock filter-select-icon"></i>
+                        <input type="time" id="timeFilter" class="filter-select" placeholder="All Times">
+                    </div>
+                    <button class="btn-clear" id="btnClear"><i class="fa-solid fa-xmark"></i></button>
+                </div>
+            </div>
+
+            <div id="reservationsList"></div>
+
+            <div class="empty-state hidden" id="emptyState">
+                <i class="fa-regular fa-calendar-xmark empty-icon"></i>
+                <p class="empty-title">No reservations found</p>
+                <p class="empty-sub">Try adjusting your search or filters.</p>
+            </div>
+
+        </div>
+    </main>
+
+    <!-- Global Toast Container -->
+    <div id="toast-container"></div>
+
+    <!-- Global Modal Overlay -->
+    <div id="modal-overlay" class="modal-overlay">
+        <div class="modal-card">
+            <h3 id="modal-title" class="modal-title">Confirm Action</h3>
+            <p id="modal-message" class="modal-message">Are you sure you want to proceed?</p>
+            <div class="modal-actions">
+                <button id="btnModalCancel" class="btn btn-outline" style="min-width: 100px;">Cancel</button>
+                <button id="btnModalConfirm" class="btn btn-primary" style="min-width: 100px;">Confirm</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="../js/store.js"></script>
+    <script src="../js/reservations.js"></script>
+</body>
+</html>

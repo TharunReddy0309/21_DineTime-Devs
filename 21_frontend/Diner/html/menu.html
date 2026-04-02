@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DineTime - Restaurant Menu</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link rel="stylesheet" href="../css/global.css">
+    <link rel="stylesheet" href="../css/menu.css">
+
+    <script src="../../js/data.js"></script>
+</head>
+<body>
+    <main class="main-content">
+        <header class="menu-header">
+            <div class="header-container">
+                <div class="header-left">
+                    <button id="btnBackIcon" class="btn-icon-back" title="Back">
+                        <i class="fa-solid fa-chevron-left"></i>
+                    </button>
+                    <div class="header-logo" style="cursor: pointer;" onclick="window.location.href='browse.html'">
+                        <img src="../images/logo.png" alt="DineTime Logo" height="32" class="logo-img">
+                        <h2>DineTime</h2>
+                    </div>
+                </div>
+                
+                <div class="header-center">
+                    <div class="header-search">
+                        <i class="fa-solid fa-magnifying-glass search-icon"></i>
+                        <input type="text" id="searchInput" placeholder="Search dishes or menu items">
+                    </div>
+                </div>
+
+                <div class="header-right">
+                    <div class="user-action" style="cursor: pointer;" onclick="window.location.href='profile.html'">
+                        <i class="fa-regular fa-user user-icon"></i>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Reservation Info Bar -->
+        <div class="reservation-info-bar">
+            <div class="info-group">
+                <div class="info-res-header">
+                    <img id="infoResImg" src="" alt="Restaurant" class="info-res-thumb">
+                    <div class="info-res-content">
+                        <h3 id="infoResName">Restaurant Name</h3>
+                        <span id="infoTableNo" class="info-sub">Table Details</span>
+                    </div>
+                </div>
+            </div>
+            <div class="info-stats">
+                <div class="stat"><i class="fa-regular fa-clock"></i> <span id="infoTime">--:--</span></div>
+                <div class="stat"><i class="fa-solid fa-user-group"></i> <span id="infoGuests">- Guests</span></div>
+                <div class="badge-status" id="resStatusBadge" style="display: none;"><i class="fa-regular fa-circle-check"></i> Checked In</div>
+            </div>
+        </div>
+
+        <div class="menu-layout">
+            <!-- Left Side: Category Filters + Menu Items -->
+            <div class="menu-left">
+                <div class="filters-container">
+                    <div class="category-filters" id="categoryFilters">
+                    </div>
+                </div>
+
+                <div class="menu-grid" id="menuGrid">
+                </div>
+            </div>
+
+            <!-- Right Side: Order Cart -->
+            <div class="menu-right">
+                <div class="cart-box">
+                    <h2 class="cart-title"><i class="fa-solid fa-basket-shopping"></i> Your Order</h2>
+                    <div class="cart-items" id="cartItems">
+                    </div>
+                    <div class="cart-summary hidden" id="cartSummary">
+                        <div class="summary-row">
+                            <span>Subtotal</span>
+                            <span id="cartSubtotal">$0.00</span>
+                        </div>
+                        <div class="summary-row">
+                            <span>Tax (10%)</span>
+                            <span id="cartTax">$0.00</span>
+                        </div>
+                        <div class="summary-row total">
+                            <span>Total</span>
+                            <span id="cartTotal">$0.00</span>
+                        </div>
+                        <button class="btn-checkout" id="btnCheckout">Place Order <i class="fa-solid fa-check"></i></button>
+                    </div>
+                    
+                    <div class="cart-empty" id="cartEmpty">
+                        <i class="fa-solid fa-cart-shopping"></i>
+                        <p>Your cart is empty.</p>
+                        <p>Add some delicious dishes!</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Global Toast Container -->
+        <div id="toast-container"></div>
+
+        <!-- Global Modal Overlay -->
+        <div id="modal-overlay" class="modal-overlay">
+            <div class="modal-card">
+                <h3 id="modal-title" class="modal-title">Confirm Action</h3>
+                <p id="modal-message" class="modal-message">Are you sure you want to proceed?</p>
+                <div class="modal-actions">
+                    <button id="btnModalCancel" class="btn btn-outline" style="min-width: 100px;">Cancel</button>
+                    <button id="btnModalConfirm" class="btn btn-primary" style="min-width: 100px;">Confirm</button>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script src="../js/store.js"></script>
+    <script src="../js/menu.js"></script>
+</body>
+</html>

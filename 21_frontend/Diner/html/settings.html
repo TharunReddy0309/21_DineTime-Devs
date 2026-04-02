@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DineTime - Settings</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link rel="stylesheet" href="../css/global.css">
+    <link rel="stylesheet" href="../css/settings.css">
+
+    <script src="../../js/data.js"></script>
+</head>
+<body>
+    
+    <aside class="sidebar">
+        <div class="sidebar-logo">
+            <img src="../images/logo.png" alt="DineTime Logo" />
+            <h2>DineTime</h2>
+        </div>
+        
+        <nav class="sidebar-nav">
+            <a href="#" class="nav-item nav-link" data-href="profile.html">
+                <i class="fa-regular fa-user"></i>
+                Profile
+            </a>
+            <a href="#" class="nav-item nav-link" data-href="reservations.html">
+                <i class="fa-regular fa-calendar-check"></i>
+                My Reservations
+            </a>
+            <a href="#" class="nav-item nav-link" data-href="browse.html">
+                <i class="fa-solid fa-utensils"></i>
+                Browse Restaurants
+            </a>
+            <a href="#" class="nav-item active">
+                <i class="fa-solid fa-gear"></i>
+                Settings
+            </a>
+        </nav>
+    </aside>
+
+    <main class="main-content">
+        <div class="settings-hero">
+            <div class="hero-overlay"></div>
+            <div class="hero-content">
+                <h1>Settings</h1>
+                <p>Manage your account preferences, security, and notifications.</p>
+            </div>
+            <div class="user-action">
+                <i class="fa-regular fa-user user-icon" onclick="window.location.href='profile.html'"></i>
+            </div>
+        </div>
+
+        <div class="settings-container" id="settingsForm">
+            <!-- Account Settings -->
+            <div class="settings-card">
+                <div class="card-header">
+                    <i class="fa-regular fa-user"></i>
+                    <h3>Account Settings</h3>
+                </div>
+                <p class="card-subtitle">Update your personal information</p>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label>Full Name</label>
+                        <input type="text" id="iptName" class="form-control" placeholder="John Doe">
+                    </div>
+                    <div class="form-group">
+                        <label>Email Address</label>
+                        <input type="email" id="iptEmail" class="form-control" placeholder="john.doe@email.com">
+                    </div>
+                    <div class="form-group">
+                        <label>Phone Number</label>
+                        <input type="tel" id="iptPhone" class="form-control" placeholder="+1 (555) 123-4567">
+                    </div>
+                    <div class="form-group span-2">
+                        <label>Address</label>
+                        <input type="text" id="iptAddress" class="form-control" placeholder="123 Street Name">
+                    </div>
+                    <div class="form-group">
+                        <label>City</label>
+                        <input type="text" id="iptCity" class="form-control" placeholder="New York">
+                    </div>
+                    <div class="form-group">
+                        <label>Pincode / ZIP</label>
+                        <input type="text" id="iptPincode" class="form-control" placeholder="10001">
+                    </div>
+                    <div class="form-group">
+                        <label>Country</label>
+                        <input type="text" id="iptCountry" class="form-control" placeholder="USA">
+                    </div>
+                </div>
+                <div class="form-actions">
+                    <button class="btn btn-primary" id="btnSaveAccount" style="background: var(--primary); color: white;">
+                        <i class="fa-solid fa-floppy-disk"></i> Save Changes
+                    </button>
+                    <button class="btn btn-outline" id="btnResetAccount">
+                        <i class="fa-solid fa-rotate-left"></i> Reset
+                    </button>
+                </div>
+            </div>
+
+            <!-- Security Settings -->
+            <div class="settings-card">
+                <div class="card-header">
+                    <i class="fa-solid fa-lock"></i>
+                    <h3>Security Settings</h3>
+                </div>
+                <p class="card-subtitle">Manage your password and security options</p>
+                <div class="form-group span-2">
+                    <label>Current Password</label>
+                    <input type="password" id="iptCurPass" class="form-control" placeholder="Enter current password">
+                </div>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label>New Password</label>
+                        <input type="password" id="iptNewPass" class="form-control" placeholder="Enter new password">
+                    </div>
+                    <div class="form-group">
+                        <label>Confirm Password</label>
+                        <input type="password" id="iptConfPass" class="form-control" placeholder="Confirm new password">
+                    </div>
+                </div>
+
+                <div class="setting-row highlight-box">
+                    <div class="setting-info">
+                        <strong>Enable Two-Factor Authentication</strong>
+                        <span>Add an extra layer of security to your account</span>
+                    </div>
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="chk2FA">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+
+                <div class="form-actions-left">
+                    <button class="btn btn-accent" id="btnUpdatePass">Update Password</button>
+                </div>
+            </div>
+
+            <!-- Notification Preferences -->
+            <div class="settings-card">
+                <div class="card-header">
+                    <i class="fa-regular fa-bell"></i>
+                    <h3>Notification Preferences</h3>
+                </div>
+                <p class="card-subtitle">Choose how you want to be notified</p>
+                
+                <div class="setting-list">
+                    <div class="setting-row">
+                        <span>Reservation Confirmations</span>
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="tglResConf">
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                    <div class="setting-row">
+                        <span>Promotional Offers</span>
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="tglPromos">
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                    <div class="setting-row">
+                        <span>Restaurant Updates</span>
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="tglRestUpdates">
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                    <div class="setting-row">
+                        <span>Email Notifications</span>
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="tglEmailNotifs">
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                    <div class="setting-row">
+                        <span>SMS Notifications</span>
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="tglSmsNotifs">
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Privacy Settings -->
+            <div class="settings-card">
+                <div class="card-header">
+                    <i class="fa-solid fa-shield-halved"></i>
+                    <h3>Privacy Settings</h3>
+                </div>
+                <p class="card-subtitle">Control your privacy and data sharing</p>
+                
+                <div class="setting-list checkboxes">
+
+                    <label class="custom-checkbox-row">
+                        <input type="checkbox" id="chkContact">
+                        <div class="checkbox-box">
+                            <i class="fa-solid fa-check checkmark"></i>
+                        </div>
+                        <div class="checkbox-info">
+                            <strong>Allow restaurants to contact me</strong>
+                            <span>Restaurants can send you messages about reservations</span>
+                        </div>
+                    </label>
+                    <label class="custom-checkbox-row">
+                        <input type="checkbox" id="chkHistory">
+                        <div class="checkbox-box">
+                            <i class="fa-solid fa-check checkmark"></i>
+                        </div>
+                        <div class="checkbox-info">
+                            <strong>Share dining history for recommendations</strong>
+                            <span>Help us provide better restaurant suggestions</span>
+                        </div>
+                    </label>
+                </div>
+            </div>
+
+
+
+        </div>
+    </main>
+
+    <!-- Global Toast Container -->
+    <div id="toast-container"></div>
+
+    <!-- Global Modal Overlay -->
+    <div id="modal-overlay" class="modal-overlay">
+        <div class="modal-card">
+            <h3 id="modal-title" class="modal-title">Confirm Action</h3>
+            <p id="modal-message" class="modal-message">Are you sure you want to proceed?</p>
+            <div class="modal-actions">
+                <button id="btnModalCancel" class="btn btn-outline" style="min-width: 100px;">Cancel</button>
+                <button id="btnModalConfirm" class="btn btn-primary" style="min-width: 100px;">Confirm</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="../js/store.js"></script>
+    <script src="../js/settings.js"></script>
+</body>
+</html>

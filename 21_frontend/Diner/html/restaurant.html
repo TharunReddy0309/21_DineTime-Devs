@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DineTime - Restaurant</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link rel="stylesheet" href="../css/global.css">
+    <link rel="stylesheet" href="../css/restaurant.css">
+
+    <script src="../../js/data.js"></script>
+</head>
+<body>
+
+    <aside class="sidebar">
+        <div class="sidebar-logo">
+            <img src="../images/logo.png" alt="DineTime Logo" />
+            <h2>DineTime</h2>
+        </div>
+        <nav class="sidebar-nav">
+            <a href="profile.html" class="nav-item">
+                <i class="fa-regular fa-user"></i>
+                Profile
+            </a>
+            <a href="reservations.html" class="nav-item">
+                <i class="fa-regular fa-calendar-check"></i>
+                My Reservations
+            </a>
+            <a href="browse.html" class="nav-item">
+                <i class="fa-solid fa-utensils"></i>
+                Browse Restaurants
+            </a>
+            <a href="settings.html" class="nav-item">
+                <i class="fa-solid fa-gear"></i>
+                Settings
+            </a>
+        </nav>
+    </aside>
+
+    <main class="main-content">
+        <header class="top-header">
+            <div class="search-container">
+                <i class="fa-solid fa-magnifying-glass search-icon"></i>
+                <input type="text" class="search-input" placeholder="Search restaurants, cuisines, or locations" id="globalSearchInput">
+            </div>
+            <div class="header-actions">
+                <img src="../images/icon-profile.png" alt="User" width="28" height="28" class="user-avatar" onclick="window.location.href='profile.html'" />
+            </div>
+        </header>
+
+        <div class="page-body container">
+
+            <section class="hero-section">
+                
+                <div class="carousel-wrapper">
+                    <div id="carouselTrack" class="carousel-track"></div>
+                    <button class="carousel-btn prev" id="prevBtn"><i class="fa-solid fa-chevron-left"></i></button>
+                    <button class="carousel-btn next" id="nextBtn"><i class="fa-solid fa-chevron-right"></i></button>
+                    <div class="carousel-counter" id="carouselCounter">1 / 4</div>
+                </div>
+
+                <div class="info-card">
+                    <h1 id="restaurantName" class="rest-name"></h1>
+                    <p id="restaurantSubtitle" class="rest-subtitle"></p>
+
+                    <div class="rating-row">
+                        <i class="fa-solid fa-star star-icon"></i>
+                        <span id="restaurantRating" class="rating-value"></span>
+                        <span id="restaurantReviews" class="review-count"></span>
+                    </div>
+
+                    <div class="location-row">
+                        <i class="fa-solid fa-location-dot location-icon"></i>
+                        <span id="restaurantLocation"></span>
+                    </div>
+
+                    <div class="price-row">
+                        <span id="restaurantPrice" class="price-badge"></span>
+                    </div>
+
+                    <div id="amenitiesList" class="amenities-row"></div>
+
+                    <button class="btn-reserve-main" id="reserveBtn">Reserve Table</button>
+                    </div>
+            </section>
+
+            <section class="detail-card" id="aboutSection">
+                <h2>About the Restaurant</h2>
+                <p id="aboutText" class="about-text"></p>
+                <div class="about-grid" id="aboutGrid"></div>
+            </section>
+
+            <section class="detail-card" id="hoursSection">
+                <h2>Operational Hours</h2>
+                <div id="hoursList" class="hours-list"></div>
+            </section>
+
+            <!-- Previews a few menu images -->
+            <section class="detail-card" id="menuSection">
+                <h2>Menu Highlights</h2>
+                <div id="menuGrid" class="menu-grid"></div>
+            </section>
+
+            <section class="detail-card" id="reviewsSection">
+                <h2>Customer Reviews</h2>
+                <div id="reviewsGrid" class="reviews-grid"></div>
+            </section>
+
+        </div>
+    </main>
+
+    <script src="../js/store.js"></script>
+    <script src="../js/restaurant.js"></script>
+</body>
+</html>

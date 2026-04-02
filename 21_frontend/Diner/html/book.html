@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DineTime - Book a Table</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link rel="stylesheet" href="../css/global.css">
+    <link rel="stylesheet" href="../css/book.css">
+
+    <script src="../../js/data.js"></script>
+</head>
+<body>
+
+    <aside class="sidebar">
+        <div class="sidebar-logo">
+            <img src="../images/logo.png" alt="DineTime Logo" />
+            <h2>DineTime</h2>
+        </div>
+        <nav class="sidebar-nav">
+            <a href="profile.html" class="nav-item">
+                <i class="fa-regular fa-user"></i>
+                Profile
+            </a>
+            <a href="reservations.html" class="nav-item">
+                <i class="fa-regular fa-calendar-check"></i>
+                My Reservations
+            </a>
+            <a href="browse.html" class="nav-item">
+                <i class="fa-solid fa-utensils"></i>
+                Browse Restaurants
+            </a>
+            <a href="settings.html" class="nav-item">
+                <i class="fa-solid fa-gear"></i>
+                Settings
+            </a>
+        </nav>
+    </aside>
+
+    <main class="main-content">
+        <header class="top-header">
+            <div class="search-container">
+                <i class="fa-solid fa-magnifying-glass search-icon"></i>
+                <input type="text" class="search-input" placeholder="Search restaurants, cuisines, or locations" id="globalSearchInput">
+            </div>
+            <div class="header-actions">
+                <img src="../images/icon-profile.png" alt="User" width="28" height="28" class="user-avatar" onclick="window.location.href='profile.html'" />
+            </div>
+        </header>
+
+        <div class="page-body container">
+
+            <section class="restaurant-banner" id="restaurantBanner"></section>
+
+            <div class="reservation-layout">
+                <div class="left-column">
+                    <section class="detail-card">
+                        <h2>Select Reservation Details</h2>
+                        <div class="inputs-row">
+                            <div class="input-group">
+                                <label>Date</label>
+                                <div class="input-box">
+                                    <i class="fa-regular fa-calendar"></i>
+                                    <input type="date" id="dateInput" />
+                                </div>
+                            </div>
+                            <div class="input-group">
+                                <label>Time</label>
+                                <div class="input-box">
+                                    <i class="fa-regular fa-clock"></i>
+                                    <select id="timeInput">
+                                        <option value="" disabled selected>Select Time</option>
+                                        <option value="6:00 PM">6:00 PM</option>
+                                        <option value="7:00 PM">7:00 PM</option>
+                                        <option value="7:30 PM">7:30 PM</option>
+                                        <option value="8:00 PM">8:00 PM</option>
+                                        <option value="8:30 PM">8:30 PM</option>
+                                        <option value="9:00 PM">9:00 PM</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="input-group">
+                                <label>Guests</label>
+                                <div class="input-box">
+                                    <i class="fa-solid fa-people-group"></i>
+                                    <select id="guestsInput">
+                                        <option value="" disabled selected>Select Guests (Optional)</option>
+                                        <option value="1">1 Guest</option>
+                                        <option value="2">2 Guests</option>
+                                        <option value="3">3 Guests</option>
+                                        <option value="4">4 Guests</option>
+                                        <option value="5">5 Guests</option>
+                                        <option value="6">6 Guests</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+
+                    <section class="detail-card hidden" id="availabilitySection">
+                        <h2>Available Tables</h2>
+                        <p class="section-subtitle">Select a table based on current availability</p>
+
+                        <div class="legend-row">
+                            <span class="legend-item"><span class="legend-dot available"></span> Available</span>
+                            <span class="legend-item"><span class="legend-dot reserved"></span> Reserved</span>
+                            <span class="legend-item"><span class="legend-dot unavailable"></span> Unavailable</span>
+                        </div>
+                        <hr class="divider" />
+
+                        <div class="table-grid" id="tableGrid"></div>
+                    </section>
+                </div>
+
+                <aside class="right-column">
+                    <div class="summary-card" id="summaryCard">
+                        <h3>Reservation Summary</h3>
+                        <div class="summary-body" id="summaryBody">
+                            <p class="summary-empty">Select an available table to see your reservation summary.</p>
+                        </div>
+                        <button class="btn-confirm" id="confirmBtn" disabled>Confirm Reservation</button>
+                        <p class="summary-hint" id="summaryHint">Please select a table to continue</p>
+                    </div>
+                </aside>
+
+            </div>
+        </div>
+    </main>
+
+    <div class="toast hidden" id="toast">
+        <i class="fa-solid fa-circle-info toast-icon"></i>
+        <span id="toastMsg"></span>
+    </div>
+
+    <script src="../js/store.js"></script>
+    <script src="../js/book.js"></script>
+</body>
+</html>

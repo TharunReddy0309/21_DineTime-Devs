@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DineTime - My Profile</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+    <link rel="stylesheet" href="../css/global.css">
+    <link rel="stylesheet" href="../css/profile.css">
+
+    <script src="../../js/data.js"></script>
+</head>
+<body>
+    
+    <aside class="sidebar">
+        <div class="sidebar-logo">
+            <img src="../images/logo.png" alt="DineTime Logo" />
+            <h2>DineTime</h2>
+        </div>
+        
+        <nav class="sidebar-nav">
+            <a href="#" class="nav-item active">
+                <i class="fa-regular fa-user"></i>
+                Profile
+            </a>
+            <a href="reservations.html" class="nav-item">
+                <i class="fa-regular fa-calendar-check"></i>
+                My Reservations
+            </a>
+            <a href="browse.html" class="nav-item">
+                <i class="fa-solid fa-utensils"></i>
+                Browse Restaurants
+            </a>
+            <a href="settings.html" class="nav-item">
+                <i class="fa-solid fa-gear"></i>
+                Settings
+            </a>
+        </nav>
+    </aside>
+
+    <main class="main-content">
+        
+        <!-- Premium Hero Banner -->
+        <div class="hero-banner">
+            <div class="hero-overlay"></div>
+            
+            <div class="hero-top-right">
+                <!-- Notifications -->
+                <div class="notification-wrapper">
+                    <button class="circle-icon" id="btnNotifications">
+                        <i class="fa-regular fa-bell"></i>
+                    </button>
+                    <!-- Notification Dropdown -->
+                    <div class="dropdown-menu hidden" id="notifDropdown">
+                        <div class="dropdown-header">
+                            <h3>Notifications</h3>
+                            <button class="btn-close-notif" id="btnCloseNotif"><i class="fa-solid fa-xmark"></i></button>
+                        </div>
+                        <div class="dropdown-body empty-state" id="notifList">
+                            <p class="empty-notif-msg">You have no new notifications</p>
+                        </div>
+                    </div>
+                </div>
+
+                <button class="circle-icon" id="btnProfileSettings"><i class="fa-regular fa-user"></i></button>
+                <button class="circle-icon" id="btnLogout"><i class="fa-solid fa-arrow-right-from-bracket"></i></button>
+            </div>
+
+            <div class="hero-titles">
+                <h1>My Profile</h1>
+                <p>Welcome back, <span id="welcomeName">John</span>!</p>
+            </div>
+        </div>
+
+        <div class="page-container">
+            
+            <!-- Large Profile Data Card -->
+            <div class="profile-card-large">
+                
+                <div class="profile-left">
+                    <div class="avatar-circle" id="avatarCircle">
+                        <i class="fa-regular fa-user" id="avatarIcon"></i>
+                    </div>
+                    <h2 class="profile-name" id="userName">John Doe</h2>
+                    <div class="photo-actions">
+                        <button class="btn-green-solid" id="btnUploadPhoto"><i class="fa-solid fa-arrow-up-from-bracket"></i> Upload Photo</button>
+                        <button class="btn-red-outline" id="btnRemovePhoto" style="display:none;"><i class="fa-solid fa-trash"></i> Remove Photo</button>
+                    </div>
+                    <input type="file" id="filePhotoInput" accept="image/*" style="display:none;">
+                </div>
+
+                <div class="profile-right">
+                    <div class="info-group">
+                        <div class="info-label">EMAIL ADDRESS</div>
+                        <div class="info-val" id="userEmail"></div>
+                    </div>
+                    <div class="info-group">
+                        <div class="info-label">PHONE NUMBER</div>
+                        <div class="info-val" id="userPhone"></div>
+                    </div>
+                    <div class="info-group">
+                        <div class="info-label">CITY</div>
+                        <div class="info-val" id="userCity"></div>
+                    </div>
+                    <div class="info-group">
+                        <div class="info-label">PINCODE</div>
+                        <div class="info-val" id="userPincode"></div>
+                    </div>
+                    <div class="info-group">
+                        <div class="info-label">COUNTRY</div>
+                        <div class="info-val" id="userCountry"></div>
+                    </div>
+                    <div class="info-group">
+                        <div class="info-label">MEMBER SINCE</div>
+                        <div class="info-val" id="userSince"></div>
+                    </div>
+                </div>
+
+                <!-- New Location & Map Column -->
+                <div class="profile-map-column">
+                    <div class="map-placeholder">
+                        <div id="profileMapUI" style="width: 100%; height: 100%; border-radius: 8px; z-index: 1;"></div>
+                        <div class="map-label" id="mapLabel">HSR Layout</div>
+                    </div>
+                    <button class="btn-orange-outline w-full mt-10" id="btnChangeLocation">
+                        <i class="fa-solid fa-pen-to-square"></i> Change Location
+                    </button>
+                </div>
+            </div>
+
+            <!-- Upcoming Reservations -->
+            <h3 class="section-title">Upcoming Reservations</h3>
+            <div class="upcoming-list" id="upcomingList">
+                <!-- Injected via JS -->
+            </div>
+
+            <!-- Reservation History Table -->
+            <h3 class="section-title">Reservation History</h3>
+            <div class="table-card">
+                <table class="history-table">
+                    <thead>
+                        <tr>
+                            <th>RESTAURANT NAME</th>
+                            <th>VISIT DATE</th>
+                            <th>GUESTS</th>
+                            <th>STATUS</th>
+                            <th>ACTION</th>
+                        </tr>
+                    </thead>
+                    <tbody id="historyList">
+                        <!-- Injected via JS -->
+                    </tbody>
+                </table>
+            </div>
+
+        </div>
+    </main>
+
+    <!-- Rating Modal (Kept from original design) -->
+    <div class="modal-overlay" id="ratingModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="modalTitle">Rate Experience</h3>
+                <button class="btn-close" id="btnCloseModal"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="modal-body">
+                <p class="modal-subtitle" id="modalSubtitle">How was your visit?</p>
+                <div class="star-rating margin-bottom-20" id="starContainer">
+                    <i class="fa-solid fa-star star-btn" data-value="1"></i>
+                    <i class="fa-solid fa-star star-btn" data-value="2"></i>
+                    <i class="fa-solid fa-star star-btn" data-value="3"></i>
+                    <i class="fa-solid fa-star star-btn" data-value="4"></i>
+                    <i class="fa-solid fa-star star-btn" data-value="5"></i>
+                </div>
+                <div class="form-group">
+                    <label>Review Notes</label>
+                    <textarea id="iptReview" class="form-control" rows="3" placeholder="Write a review..."></textarea>
+                </div>
+            </div>
+            <div class="modal-footer" id="modalFooter">
+                <button class="btn-cancel" id="btnCancelRate">Cancel</button>
+                <button class="btn-orange-solid" id="btnSubmitRate">Submit</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Location Change Modal -->
+    <div class="modal-overlay" id="locationModal">
+        <div class="modal-content loc-modal">
+            <div class="modal-header">
+                <h3><i class="fa-solid fa-location-dot" style="color:var(--primary); margin-right:8px;"></i>Change Location</h3>
+                <button class="btn-close" id="btnCloseLocModal"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="modal-body" style="padding: 0;">
+
+                <!-- Map takes full width at top -->
+                <div id="modalMapUI" style="width: 100%; height: 280px; z-index: 1;"></div>
+
+                <div style="padding: 20px;">
+                    <p class="map-caption" style="margin-bottom: 16px;">
+                        <i class="fa-solid fa-hand-pointer" style="margin-right: 6px; color: var(--accent);"></i>
+                        Click on the map or drag the pin to set your location.
+                    </p>
+
+                    <hr class="modal-divider" style="margin: 16px 0;">
+
+                    <div class="form-group" style="margin-bottom: 16px;">
+                        <label>Address</label>
+                        <div class="input-with-icon">
+                            <i class="fa-solid fa-location-dot"></i>
+                            <input type="text" id="iptAddress" class="form-control" placeholder="Street / Area">
+                        </div>
+                    </div>
+
+                    <div class="form-row-2col" style="margin-bottom: 16px;">
+                        <div class="form-group">
+                            <label>City <span class="required">*</span></label>
+                            <input type="text" id="iptCity" class="form-control" placeholder="Enter city">
+                        </div>
+                        <div class="form-group">
+                            <label>Pincode</label>
+                            <input type="text" id="iptPincode" class="form-control" placeholder="Enter pincode">
+                        </div>
+                    </div>
+
+                    <div class="form-group" style="margin-bottom: 24px;">
+                        <label>Country</label>
+                        <input type="text" id="iptCountry" class="form-control" placeholder="Country">
+                    </div>
+
+                    <button class="btn-green-solid w-full justify-center" id="btnSaveLocationModal">
+                        <i class="fa-solid fa-floppy-disk"></i> Save Location
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Alert Toast -->
+    <div class="toast hidden" id="toast">
+        <i class="fa-solid fa-circle-info toast-icon"></i>
+        <span id="toastMsg"></span>
+    </div>
+
+    <!-- State management script and page script -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+    <!-- Global Toast Container -->
+    <div id="toast-container"></div>
+
+    <!-- Global Modal Overlay -->
+    <div id="modal-overlay" class="modal-overlay">
+        <div class="modal-card">
+            <h3 id="modal-title" class="modal-title">Confirm Action</h3>
+            <p id="modal-message" class="modal-message">Are you sure you want to proceed?</p>
+            <div class="modal-actions">
+                <button id="btnModalCancel" class="btn-outline" style="min-width: 100px; padding: 10px 20px; border-radius: 8px; font-weight: 600; cursor: pointer; border: 1px solid var(--border); background: transparent;">Cancel</button>
+                <button id="btnModalConfirm" class="btn-orange-solid" style="min-width: 100px; padding: 10px 20px; border-radius: 8px; font-weight: 600; cursor: pointer; border: none; background: var(--accent); color: white;">Confirm</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="../js/store.js"></script>
+    <script src="../js/profile.js"></script>
+</body>
+</html>
