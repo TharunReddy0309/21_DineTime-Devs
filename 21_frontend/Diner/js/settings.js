@@ -191,27 +191,64 @@ function init() {
         ];
 
         let isValid = true;
-        let firstEmptyField = null;
+        let firstInvalidField = null;
 
-        requiredFields.forEach(field => {
+        // Reset all error states first
+        requiredFields.forEach(f => {
+            const input = document.getElementById(f.id);
+            if (input) input.classList.remove('input-error');
+        });
+
+        // Validation Rules
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        const phoneRegex = /^\d{10}$/; // Exactly 10 digits
+        const pincodeRegex = /^\d{6}$/; // Exactly 6 digits
+
+        for (const field of requiredFields) {
             const input = document.getElementById(field.id);
-            if (!input.value.trim()) {
+            if (!input) continue;
+            
+            const val = input.value.trim();
+            let errorMsg = '';
+
+            // 1. Required Check
+            if (!val) {
+                errorMsg = `${field.name} is required.`;
+            } 
+            // 2. Format Checks
+            else if (field.id === 'iptEmail' && !emailRegex.test(val)) {
+                errorMsg = 'Please enter a valid email address.';
+            } 
+            else if (field.id === 'iptPhone' && !phoneRegex.test(val.replace(/\D/g, ''))) {
+                errorMsg = 'Phone number must be exactly 10 digits.';
+            } 
+            else if (field.id === 'iptPincode' && !pincodeRegex.test(val)) {
+                errorMsg = 'Pincode must be exactly 6 digits.';
+            } 
+            else if (field.id === 'iptName' && val.length < 2) {
+                errorMsg = 'Full Name must be at least 2 characters.';
+            }
+            else if (field.id === 'iptAddress' && val.length < 5) {
+                errorMsg = 'Please provide a more complete address.';
+            }
+
+            if (errorMsg) {
                 input.classList.add('input-error');
                 isValid = false;
-                if (!firstEmptyField) firstEmptyField = input;
+                if (!firstInvalidField) {
+                    firstInvalidField = input;
+                    showToast(errorMsg, 'error');
+                }
                 
-                // Remove error style on input
+                // Add one-time listener to remove error class on next input
                 input.addEventListener('input', () => {
                     input.classList.remove('input-error');
                 }, { once: true });
-            } else {
-                input.classList.remove('input-error');
             }
-        });
+        }
 
         if (!isValid) {
-            showToast('Please fill in all required account fields.', 'error');
-            if (firstEmptyField) firstEmptyField.focus();
+            if (firstInvalidField) firstInvalidField.focus();
             return;
         }
 

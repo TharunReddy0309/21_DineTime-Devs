@@ -433,3 +433,10 @@ body.dark-mode .profile-card { border-color: #334155; }
     .card-actions { flex-direction: column; }
     .card-actions button { width: 100%; justify-content: center; }
 }
+
+ . i n p u t - e r r o r   { 
+         b o r d e r - c o l o r :   # E F 4 4 4 4   ! i m p o r t a n t ; 
+         b a c k g r o u n d - c o l o r :   # F E F 2 F 2   ! i m p o r t a n t ; 
+         b o x - s h a d o w :   0   0   0   3 p x   r g b a ( 2 3 9 ,   6 8 ,   6 8 ,   0 . 1 )   ! i m p o r t a n t ; 
+ }  
+ 

@@ -33,7 +33,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     data: {
                         name: "John Doe",
                         email: "johndoe@gmail.com",
-                        phone: "+91 98765 43210",
+                        phone: "9876543210",
                         location: "HSR Layout, Bangalore",
                         city: "Bangalore",
                         pincode: "560102",
@@ -50,7 +50,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     data: {
                         name: "Rahul Sharma",
                         email: "rahulsharma@spicegarden.com",
-                        phone: "+91 91234 56789",
+                        phone: "9123456789",
                         location: "MG Road, Bangalore",
                         city: "Bangalore",
                         pincode: "560001",

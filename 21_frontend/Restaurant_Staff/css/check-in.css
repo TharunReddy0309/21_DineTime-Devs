@@ -773,3 +773,53 @@ button,
     .header-actions .btn-secondary { display: none; } /* hide export/refresh on tiny screens */
     .header-actions .btn-orange { flex: unset; width: 100%; justify-content: center; }
 }
+
+/* ─── Toast Notifications ────────────────────────── */
+.toast-container {
+    position: fixed;
+    bottom: 30px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 9999;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    pointer-events: none;
+}
+
+.toast-notification {
+    background: #1f2937;
+    color: white;
+    padding: 14px 24px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.2);
+    font-weight: 500;
+    font-size: 0.95rem;
+    opacity: 0;
+    transform: translateY(20px);
+    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    border-left: 4px solid var(--btn-green);
+    min-width: 320px;
+    pointer-events: auto;
+}
+
+.toast-notification.show {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.toast-notification.error {
+    border-left-color: var(--error-red);
+}
+
+.toast-notification i {
+    font-size: 1.1rem;
+    color: var(--success-green);
+}
+
+.toast-notification.error i {
+    color: var(--error-red);
+}

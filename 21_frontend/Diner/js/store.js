@@ -19,7 +19,7 @@ const DinetimeStore = {
         name: "John Doe",
         email: "johndoe@gmail.com",
         password: "password123",
-        phone: "+91 98765 43210",
+        phone: "9876543210",
         location: "HSR Layout, Bangalore",
         city: "Bangalore",
         pincode: "560102",
@@ -199,7 +199,7 @@ const DinetimeStore = {
           images: ["../images/indian.jpg", "../images/healthy.jpg", "../images/italian.jpg", "../images/mexican.jpg"],
           image: "../images/indian.jpg",
           description: "Spice Garden brings authentic Indian flavors to the heart of Bangalore. Our chefs craft each dish with fresh, locally-sourced ingredients using traditional techniques.",
-          phone: "+91 80 1234 5678", openingHours: "11:00 AM – 10:00 PM", parking: "Valet Available", dressCode: "Smart Casual",
+          phone: "8012345678", openingHours: "11:00 AM – 10:00 PM", parking: "Valet Available", dressCode: "Smart Casual",
           operationalHours: [{ days: "Monday – Friday", hours: "11:00 AM – 10:00 PM", isOpen: true }, { days: "Saturday – Sunday", hours: "10:00 AM – 11:30 PM", isOpen: false }],
           menuImages: ["../images/menu1.png", "../images/menu2.png"],
           reviews: [
@@ -212,7 +212,7 @@ const DinetimeStore = {
           images: ["../images/japanese.jpg", "../images/thai.jpg", "../images/chinese.jpg", "../images/healthy.jpg"],
           image: "../images/japanese.jpg",
           description: "Sushi Master is a sanctuary for Japanese cuisine lovers. Our executive chef trained for over a decade in Tokyo and brings authentic omakase experiences.",
-          phone: "+91 80 9876 5432", openingHours: "12:00 PM – 11:00 PM", parking: "Street Parking", dressCode: "Smart Casual",
+          phone: "8098765432", openingHours: "12:00 PM – 11:00 PM", parking: "Street Parking", dressCode: "Smart Casual",
           operationalHours: [{ days: "Monday – Friday", hours: "12:00 PM – 11:00 PM", isOpen: true }, { days: "Saturday – Sunday", hours: "11:00 AM – 11:30 PM", isOpen: false }],
           menuImages: ["../images/menu1.png", "../images/menu2.png"],
           reviews: [
@@ -225,7 +225,7 @@ const DinetimeStore = {
           images: ["../images/american.jpg", "../images/mexican.jpg", "../images/italian.jpg", "../images/healthy.jpg"],
           image: "../images/american.jpg",
           description: "The original smash-burger experience in Bangalore. Burger Joint keeps it simple—top-quality beef, fresh brioche buns, and house-made sauces.",
-          phone: "+91 80 7654 3210", openingHours: "11:00 AM – 12:00 AM", parking: "No Parking", dressCode: "Casual",
+          phone: "8076543210", openingHours: "11:00 AM – 12:00 AM", parking: "No Parking", dressCode: "Casual",
           operationalHours: [{ days: "Monday – Thursday", hours: "11:00 AM – 12:00 AM", isOpen: true }, { days: "Friday – Sunday", hours: "10:00 AM – 1:00 AM", isOpen: false }],
           menuImages: ["../images/menu1.png", "../images/menu2.png"],
           reviews: [
@@ -249,7 +249,7 @@ const DinetimeStore = {
           images: ["../images/mexican.jpg", "../images/american.jpg", "../images/italian.jpg", "../images/indian.jpg"],
           image: "../images/mexican.jpg",
           description: "Taco Fiesta is your neighborhood Mexican joint packed with bold flavors, vibrant colors, and a festive spirit.",
-          phone: "+91 80 5555 1234", openingHours: "12:00 PM – 11:00 PM", parking: "Street Parking", dressCode: "Casual",
+          phone: "8055551234", openingHours: "12:00 PM – 11:00 PM", parking: "Street Parking", dressCode: "Casual",
           operationalHours: [{ days: "Monday – Friday", hours: "12:00 PM – 11:00 PM", isOpen: true }, { days: "Saturday – Sunday", hours: "11:00 AM – 12:00 AM", isOpen: false }],
           menuImages: ["../images/menu1.png", "../images/menu2.png"],
           reviews: [
@@ -261,7 +261,7 @@ const DinetimeStore = {
           images: ["../images/chinese.jpg", "../images/japanese.jpg", "../images/thai.jpg", "../images/healthy.jpg"],
           image: "../images/chinese.jpg",
           description: "Dragon Palace is Bangalore's premier destination for authentic Cantonese cuisine and dim sum.",
-          phone: "+91 80 6789 0123", openingHours: "10:00 AM – 11:00 PM", parking: "Valet Available", dressCode: "Smart Casual",
+          phone: "8067890123", openingHours: "10:00 AM – 11:00 PM", parking: "Valet Available", dressCode: "Smart Casual",
           operationalHours: [{ days: "Monday – Friday", hours: "10:00 AM – 11:00 PM", isOpen: true }, { days: "Saturday – Sunday", hours: "9:00 AM – 12:00 AM", isOpen: false }],
           menuImages: ["../images/menu1.png", "../images/menu2.png"],
           reviews: [
@@ -273,7 +273,7 @@ const DinetimeStore = {
           images: ["../images/healthy.jpg", "../images/indian.jpg", "../images/thai.jpg", "../images/italian.jpg"],
           image: "../images/healthy.jpg",
           description: "Green Bowl is a celebration of wholesome, plant-forward food. Every ingredient is sourced from certified organic farms.",
-          phone: "+91 80 2222 3333", openingHours: "8:00 AM – 9:00 PM", parking: "Street Parking", dressCode: "Casual",
+          phone: "8022223333", openingHours: "8:00 AM – 9:00 PM", parking: "Street Parking", dressCode: "Casual",
           operationalHours: [{ days: "Monday – Friday", hours: "8:00 AM – 9:00 PM", isOpen: true }, { days: "Saturday – Sunday", hours: "8:00 AM – 10:00 PM", isOpen: false }],
           menuImages: ["../images/menu1.png", "../images/menu2.png"],
           reviews: [
@@ -285,7 +285,7 @@ const DinetimeStore = {
           images: ["../images/indian.jpg", "../images/american.jpg", "../images/italian.jpg", "../images/chinese.jpg"],
           image: "../images/indian.jpg",
           description: "Prime Steakhouse is the pinnacle of carnivore dining in Bangalore. Our USDA dry-aged cuts are paired with an extensive whiskey and wine selection.",
-          phone: "+91 80 4444 5555", openingHours: "6:00 PM – 12:00 AM", parking: "Valet Available", dressCode: "Formal",
+          phone: "8044445555", openingHours: "6:00 PM – 12:00 AM", parking: "Valet Available", dressCode: "Formal",
           operationalHours: [{ days: "Monday – Friday", hours: "6:00 PM – 12:00 AM", isOpen: true }, { days: "Saturday – Sunday", hours: "5:00 PM – 1:00 AM", isOpen: false }],
           menuImages: ["../images/menu1.png", "../images/menu2.png"],
           reviews: [
@@ -297,7 +297,7 @@ const DinetimeStore = {
           images: ["../images/thai.jpg", "../images/healthy.jpg", "../images/japanese.jpg", "../images/chinese.jpg"],
           image: "../images/thai.jpg",
           description: "Ocean Catch celebrates the bounty of the Indian coastline. Our fish arrives fresh daily from the Kerala and Goa markets.",
-          phone: "+91 80 3333 6666", openingHours: "12:00 PM – 11:00 PM", parking: "Street Parking", dressCode: "Smart Casual",
+          phone: "8033336666", openingHours: "12:00 PM – 11:00 PM", parking: "Street Parking", dressCode: "Smart Casual",
           operationalHours: [{ days: "Monday – Friday", hours: "12:00 PM – 11:00 PM", isOpen: true }, { days: "Saturday – Sunday", hours: "11:00 AM – 12:00 AM", isOpen: false }],
           menuImages: ["../images/menu1.png", "../images/menu2.png"],
           reviews: [
