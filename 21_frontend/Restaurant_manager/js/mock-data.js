@@ -15,7 +15,7 @@ const initialData = {
     profile: {
         name: "Rahul Sharma",
         email: "rahul.sharma@spicegarden.com",
-        phone: "+91 98765 43210",
+        phone: "9876543210",
         city: "Bengaluru",
         restaurantName: "Spice Garden",
         memberSince: "January 2025"
@@ -31,7 +31,7 @@ const initialData = {
         rating: "4.8",
         dressCode: "Smart Casual",
         price: "200",
-        contact: "+91 80 1234 5678"
+        contact: "8012345678"
     },
     policies: [
         { title: "Cancellation Policy", desc: "Free cancellation up to 2 hours before reservation time. Late cancellations may incur a ₹500 fee." },
@@ -55,31 +55,31 @@ const initialData = {
         avgRating: 4.5
     },
     reservations: [
-        { id: "1", name: "Aditya Patel", status: "Confirmed", date: _today, time: "19:30", guests: 4, table: "T01", email: "aditya.patel@email.com", phone: "+91 9876543210", request: "VIP table for VIP meet" },
-        { id: "2", name: "Rajesh Kumar", status: "Confirmed", date: _today, time: "19:00", guests: 2, table: "T02", email: "rajesh.k@email.com", phone: "+91 9876543211", request: "Anniversary dinner" },
-        { id: "3", name: "Anita Desai", status: "Confirmed", date: _today, time: "20:00", guests: 6, table: "T03", email: "anita.desai@email.com", phone: "+91 9876543212", request: "None" },
-        { id: "4", name: "Vikram Singh", status: "Pending", date: _tomorrow, time: "18:30", guests: 3, table: "T04", email: "vikram.singh@email.com", phone: "+91 9876543213", request: "Allergy: Peanuts" },
-        { id: "5", name: "Meera Reddy", status: "Confirmed", date: _tomorrow, time: "21:00", guests: 2, table: "T05", email: "meera.reddy@email.com", phone: "+91 9876543214", request: "Window seat if possible" },
-        { id: "6", name: "Arjun Kapoor", status: "Pending", date: _today, time: "19:15", guests: 5, table: "T06", email: "arjun.kapoor@email.com", phone: "+91 9876543215", request: "Kids menu required" },
-        { id: "7", name: "Divya Sharma", status: "Confirmed", date: _tomorrow, time: "20:30", guests: 4, table: "T07", email: "divya.sharma@email.com", phone: "+91 9876543216", request: "None" },
-        { id: "8", name: "Karan Mehta", status: "No-show", date: _yesterday, time: "19:00", guests: 2, table: "T08", email: "karan.mehta@email.com", phone: "+91 9876543217", request: "None" },
-        { id: "9", name: "Sanjay Gupta", status: "Pending", date: _tomorrow, time: "20:00", guests: 4, table: "T09", email: "sanjay.gupta@email.com", phone: "+91 9876543218", request: "Birthday celebration" },
-        { id: "10", name: "Lakshmi Iyer", status: "Pending", date: _today, time: "19:30", guests: 2, table: "T10", email: "lakshmi.iyer@email.com", phone: "+91 9876543219", request: "Vegetarian options" },
-        { id: "11", name: "Rohan Chatterjee", status: "Confirmed", date: _today, time: "18:00", guests: 3, table: "T11", email: "rohan.chat@email.com", phone: "+91 9876543220", request: "Quiet corner" },
-        { id: "12", name: "Sneha Nair", status: "Confirmed", date: _tomorrow, time: "19:45", guests: 5, table: "T12", email: "sneha.nair@email.com", phone: "+91 9876543221", request: "None" },
-        { id: "13", name: "Amit Varma", status: "Confirmed", date: _today, time: "21:30", guests: 2, table: "T13", email: "amit.varma@email.com", phone: "+91 9876543222", request: "Late arrival expected" },
-        { id: "14", name: "Pooja Joshi", status: "Confirmed", date: _tomorrow, time: "20:15", guests: 4, table: "T14", email: "pooja.joshi@email.com", phone: "+91 9876543223", request: "Business meeting" },
-        { id: "15", name: "Naveen Kumar", status: "Pending", date: _dayAfter, time: "19:00", guests: 6, table: "T15", email: "naveen.k@email.com", phone: "+91 9876543224", request: "Cake arrangement" },
-        { id: "16", name: "Simran Kaur", status: "Pending", date: _dayAfter, time: "20:30", guests: 2, table: "T16", email: "simran.kaur@email.com", phone: "+91 9876543225", request: "None" },
-        { id: "17", name: "Vishal Sharma", status: "Confirmed", date: _today, time: "18:45", guests: 3, table: "T17", email: "vishal.s@email.com", phone: "+91 9876543226", request: "None" },
-        { id: "18", name: "Deepa Menon", status: "Confirmed", date: _tomorrow, time: "19:00", guests: 8, table: "T18", email: "deepa.menon@email.com", phone: "+91 9876543227", request: "Family dinner" },
-        { id: "19", name: "Ashok Pillai", status: "Confirmed", date: _dayAfter, time: "20:00", guests: 2, table: "T19", email: "ashok.pillai@email.com", phone: "+91 9876543228", request: "None" },
-        { id: "20", name: "Priya Singh", status: "Pending", date: _dayAfter, time: "21:00", guests: 4, table: "T20", email: "priya.singh@email.com", phone: "+91 9876543229", request: "None" },
-        { id: "21", name: "Manoj Rawat", status: "Cancelled", date: _today, time: "19:30", guests: 2, table: "--", email: "manoj.rawat@email.com", phone: "+91 9876543230", request: "None" },
-        { id: "22", name: "Ritu Soni", status: "Confirmed", date: _dayAfter, time: "20:45", guests: 5, table: "T21", email: "ritu.soni@email.com", phone: "+91 9876543231", request: "None" },
-        { id: "23", name: "Mohit Agarwal", status: "Pending", date: _dayAfter, time: "19:15", guests: 3, table: "T22", email: "mohit.agarwal@email.com", phone: "+91 9876543232", request: "None" },
-        { id: "24", name: "Neha Chawla", status: "Pending", date: _dayAfter, time: "20:00", guests: 2, table: "T23", email: "neha.chawla@email.com", phone: "+91 9876543233", request: "None" },
-        { id: "25", name: "Ananda Roy", status: "Confirmed", date: _today, time: "18:00", guests: 4, table: "T24", email: "ananda.roy@email.com", phone: "+91 9876543234", request: "None" }
+        { id: "1", name: "Aditya Patel", status: "Confirmed", date: _today, time: "19:30", guests: 4, table: "T01", email: "aditya.patel@email.com", phone: "9876543210", request: "VIP table for VIP meet" },
+        { id: "2", name: "Rajesh Kumar", status: "Confirmed", date: _today, time: "19:00", guests: 2, table: "T02", email: "rajesh.k@email.com", phone: "9876543211", request: "Anniversary dinner" },
+        { id: "3", name: "Anita Desai", status: "Confirmed", date: _today, time: "20:00", guests: 6, table: "T03", email: "anita.desai@email.com", phone: "9876543212", request: "None" },
+        { id: "4", name: "Vikram Singh", status: "Pending", date: _tomorrow, time: "18:30", guests: 3, table: "T04", email: "vikram.singh@email.com", phone: "9876543213", request: "Allergy: Peanuts" },
+        { id: "5", name: "Meera Reddy", status: "Confirmed", date: _tomorrow, time: "21:00", guests: 2, table: "T05", email: "meera.reddy@email.com", phone: "9876543214", request: "Window seat if possible" },
+        { id: "6", name: "Arjun Kapoor", status: "Pending", date: _today, time: "19:15", guests: 5, table: "T06", email: "arjun.kapoor@email.com", phone: "9876543215", request: "Kids menu required" },
+        { id: "7", name: "Divya Sharma", status: "Confirmed", date: _tomorrow, time: "20:30", guests: 4, table: "T07", email: "divya.sharma@email.com", phone: "9876543216", request: "None" },
+        { id: "8", name: "Karan Mehta", status: "No-show", date: _yesterday, time: "19:00", guests: 2, table: "T08", email: "karan.mehta@email.com", phone: "9876543217", request: "None" },
+        { id: "9", name: "Sanjay Gupta", status: "Pending", date: _tomorrow, time: "20:00", guests: 4, table: "T09", email: "sanjay.gupta@email.com", phone: "9876543218", request: "Birthday celebration" },
+        { id: "10", name: "Lakshmi Iyer", status: "Pending", date: _today, time: "19:30", guests: 2, table: "T10", email: "lakshmi.iyer@email.com", phone: "9876543219", request: "Vegetarian options" },
+        { id: "11", name: "Rohan Chatterjee", status: "Confirmed", date: _today, time: "18:00", guests: 3, table: "T11", email: "rohan.chat@email.com", phone: "9876543220", request: "Quiet corner" },
+        { id: "12", name: "Sneha Nair", status: "Confirmed", date: _tomorrow, time: "19:45", guests: 5, table: "T12", email: "sneha.nair@email.com", phone: "9876543221", request: "None" },
+        { id: "13", name: "Amit Varma", status: "Confirmed", date: _today, time: "21:30", guests: 2, table: "T13", email: "amit.varma@email.com", phone: "9876543222", request: "Late arrival expected" },
+        { id: "14", name: "Pooja Joshi", status: "Confirmed", date: _tomorrow, time: "20:15", guests: 4, table: "T14", email: "pooja.joshi@email.com", phone: "9876543223", request: "Business meeting" },
+        { id: "15", name: "Naveen Kumar", status: "Pending", date: _dayAfter, time: "19:00", guests: 6, table: "T15", email: "naveen.k@email.com", phone: "9876543224", request: "Cake arrangement" },
+        { id: "16", name: "Simran Kaur", status: "Pending", date: _dayAfter, time: "20:30", guests: 2, table: "T16", email: "simran.kaur@email.com", phone: "9876543225", request: "None" },
+        { id: "17", name: "Vishal Sharma", status: "Confirmed", date: _today, time: "18:45", guests: 3, table: "T17", email: "vishal.s@email.com", phone: "9876543226", request: "None" },
+        { id: "18", name: "Deepa Menon", status: "Confirmed", date: _tomorrow, time: "19:00", guests: 8, table: "T18", email: "deepa.menon@email.com", phone: "9876543227", request: "Family dinner" },
+        { id: "19", name: "Ashok Pillai", status: "Confirmed", date: _dayAfter, time: "20:00", guests: 2, table: "T19", email: "ashok.pillai@email.com", phone: "9876543228", request: "None" },
+        { id: "20", name: "Priya Singh", status: "Pending", date: _dayAfter, time: "21:00", guests: 4, table: "T20", email: "priya.singh@email.com", phone: "9876543229", request: "None" },
+        { id: "21", name: "Manoj Rawat", status: "Cancelled", date: _today, time: "19:30", guests: 2, table: "--", email: "manoj.rawat@email.com", phone: "9876543230", request: "None" },
+        { id: "22", name: "Ritu Soni", status: "Confirmed", date: _dayAfter, time: "20:45", guests: 5, table: "T21", email: "ritu.soni@email.com", phone: "9876543231", request: "None" },
+        { id: "23", name: "Mohit Agarwal", status: "Pending", date: _dayAfter, time: "19:15", guests: 3, table: "T22", email: "mohit.agarwal@email.com", phone: "9876543232", request: "None" },
+        { id: "24", name: "Neha Chawla", status: "Pending", date: _dayAfter, time: "20:00", guests: 2, table: "T23", email: "neha.chawla@email.com", phone: "9876543233", request: "None" },
+        { id: "25", name: "Ananda Roy", status: "Confirmed", date: _today, time: "18:00", guests: 4, table: "T24", email: "ananda.roy@email.com", phone: "9876543234", request: "None" }
     ],
 
 
@@ -95,12 +95,12 @@ const initialData = {
         { id: "109", name: "Masala Chai", category: "Beverages", price: 80, available: true, image: "../Diner/images/masala_chai.png" }
     ],
     staff: [
-        { id: "s1", name: "Rahul Sharma",  initials: "RS", role: "Restaurant Staff", email: "rahul.sharma@email.com",  phone: "+91 9876543210", requestedOn: "Mar 3, 2026",  status: "Pending" },
-        { id: "s2", name: "Priya Patel",   initials: "PP", role: "Restaurant Staff", email: "priya.patel@email.com",   phone: "+91 9870543211", requestedOn: "Mar 4, 2026",  status: "Pending" },
-        { id: "s3", name: "Amit Kumar",    initials: "AK", role: "Restaurant Staff", email: "amit.kumar@email.com",    phone: "+91 9876543212", requestedOn: "Mar 5, 2026",  status: "Pending" },
-        { id: "s4", name: "Sneha Reddy",   initials: "SR", role: "Restaurant Staff", email: "sneha.reddy@email.com",   phone: "+91 9876543213", requestedOn: "Mar 6, 2026",  status: "Pending" },
-        { id: "s5", name: "Vikram Singh",  initials: "VS", role: "Restaurant Staff", email: "vikram.singh@email.com",  phone: "+91 9876543214", requestedOn: "Mar 1, 2026",  status: "Approved" },
-        { id: "s6", name: "Anjali Desai",  initials: "AD", role: "Restaurant Staff", email: "anjali.desai@email.com",  phone: "+91 9876543215", requestedOn: "Feb 28, 2026", status: "Rejected" }
+        { id: "s1", name: "Rahul Sharma",  initials: "RS", role: "Restaurant Staff", email: "rahul.sharma@email.com",  phone: "9876543210", requestedOn: "Mar 3, 2026",  status: "Pending" },
+        { id: "s2", name: "Priya Patel",   initials: "PP", role: "Restaurant Staff", email: "priya.patel@email.com",   phone: "9870543211", requestedOn: "Mar 4, 2026",  status: "Pending" },
+        { id: "s3", name: "Amit Kumar",    initials: "AK", role: "Restaurant Staff", email: "amit.kumar@email.com",    phone: "9876543212", requestedOn: "Mar 5, 2026",  status: "Pending" },
+        { id: "s4", name: "Sneha Reddy",   initials: "SR", role: "Restaurant Staff", email: "sneha.reddy@email.com",   phone: "9876543213", requestedOn: "Mar 6, 2026",  status: "Pending" },
+        { id: "s5", name: "Vikram Singh",  initials: "VS", role: "Restaurant Staff", email: "vikram.singh@email.com",  phone: "9876543214", requestedOn: "Mar 1, 2026",  status: "Approved" },
+        { id: "s6", name: "Anjali Desai",  initials: "AD", role: "Restaurant Staff", email: "anjali.desai@email.com",  phone: "9876543215", requestedOn: "Feb 28, 2026", status: "Rejected" }
     ],
     notifications: [
         { id: "n1", type: "reservation", text: "<strong>New Reservation</strong> from John Doe for 4 people at 7:00 PM.", time: "10 mins ago", read: false, icon: "ph-calendar-check", iconColor: "text-green", bgClass: "bg-green-light" },

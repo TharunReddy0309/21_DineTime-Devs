@@ -80,22 +80,22 @@ document.getElementById('loginForm').addEventListener('submit', function(e) {
         
         // Always inject default test accounts for seamless testing
         registeredStaff['admin@dinetime.com'] = {
-            name: 'Admin User', email: 'admin@dinetime.com', phone: '555-0199', password: 'password123', role: 'Staff', restaurant: 'Spice Garden', status: 'Approved'
+            name: 'Admin User', email: 'admin@dinetime.com', phone: '9876500199', password: 'password123', role: 'Staff', restaurant: 'Spice Garden', status: 'Approved'
         };
         registeredStaff['spice@dinetime.com'] = {
-            name: 'Priya Mehta', email: 'spice@dinetime.com', phone: '555-0200', password: 'password123', role: 'Staff', restaurant: 'Spice Garden', status: 'Approved'
+            name: 'Priya Mehta', email: 'spice@dinetime.com', phone: '9876500200', password: 'password123', role: 'Staff', restaurant: 'Spice Garden', status: 'Approved'
         };
         registeredStaff['sushi@dinetime.com'] = {
-            name: 'Rohan Mehra', email: 'sushi@dinetime.com', phone: '555-0201', password: 'password123', role: 'Staff', restaurant: 'Sushi Master', status: 'Approved'
+            name: 'Rohan Mehra', email: 'sushi@dinetime.com', phone: '9876500201', password: 'password123', role: 'Staff', restaurant: 'Sushi Master', status: 'Approved'
         };
         registeredStaff['burger@dinetime.com'] = {
-            name: 'Amit Khanna', email: 'burger@dinetime.com', phone: '555-0202', password: 'password123', role: 'Staff', restaurant: 'Burger Joint', status: 'Approved'
+            name: 'Amit Khanna', email: 'burger@dinetime.com', phone: '9876500202', password: 'password123', role: 'Staff', restaurant: 'Burger Joint', status: 'Approved'
         };
         registeredStaff['gourmet@dinetime.com'] = {
-            name: 'Sarah Johnson', email: 'gourmet@dinetime.com', phone: '555-0203', password: 'password123', role: 'Staff', restaurant: 'Le Gourmet', status: 'Approved'
+            name: 'Sarah Johnson', email: 'gourmet@dinetime.com', phone: '9876500203', password: 'password123', role: 'Staff', restaurant: 'Le Gourmet', status: 'Approved'
         };
         registeredStaff['taco@dinetime.com'] = {
-            name: 'Andrea Lopez', email: 'taco@dinetime.com', phone: '555-0204', password: 'password123', role: 'Staff', restaurant: 'Taco Fiesta', status: 'Approved'
+            name: 'Andrea Lopez', email: 'taco@dinetime.com', phone: '9876500204', password: 'password123', role: 'Staff', restaurant: 'Taco Fiesta', status: 'Approved'
         };
         localStorage.setItem('dinetime_registered_staff', JSON.stringify(registeredStaff));
 

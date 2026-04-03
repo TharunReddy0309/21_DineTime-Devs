@@ -2311,3 +2311,18 @@ h3 .editable-input, h4 .editable-input {
 .past-date-row .action-icon {
     display: none !important;
 }
+
+ . e d i t a b l e - i n p u t . i n p u t - e r r o r   { 
+         b o r d e r - c o l o r :   # e f 4 4 4 4   ! i m p o r t a n t ; 
+         b a c k g r o u n d - c o l o r :   # f e f 2 f 2   ! i m p o r t a n t ; 
+         b o x - s h a d o w :   0   0   0   3 p x   r g b a ( 2 3 9 ,   6 8 ,   6 8 ,   0 . 1 )   ! i m p o r t a n t ; 
+ }  
+ 
+ . t o a s t . e r r o r   { 
+         b o r d e r - l e f t - c o l o r :   # e f 4 4 4 4   ! i m p o r t a n t ; 
+         b a c k g r o u n d - c o l o r :   # f e f 2 f 2   ! i m p o r t a n t ; 
+ } 
+ . t o a s t . e r r o r   . t o a s t - i c o n   { 
+         c o l o r :   # e f 4 4 4 4   ! i m p o r t a n t ; 
+ }  
+ 

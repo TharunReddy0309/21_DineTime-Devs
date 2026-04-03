@@ -7,8 +7,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const toastContainer = document.getElementById('toast-container');
     window.showToast = function(message, type = 'success') {
         const toast = document.createElement('div');
-        toast.className = 'toast';
-        let iconClass = type === 'success' ? 'ph-check-circle' : 'ph-info';
+        toast.className = `toast ${type}`;
+        let iconClass = type === 'error' ? 'ph-warning-circle' : (type === 'success' ? 'ph-check-circle' : 'ph-info');
         toast.innerHTML = `<i class="ph ${iconClass} toast-icon"></i><span class="toast-message">${message}</span>`;
         toastContainer.appendChild(toast);
         setTimeout(() => {
@@ -173,12 +173,75 @@ document.addEventListener('DOMContentLoaded', () => {
                 isEditingProfile = true;
             } else {
                 // Save Changes
+                const nameInput = document.getElementById('profile-name').querySelector('input');
+                const emailInput = document.getElementById('profile-email').querySelector('input');
+                const phoneInput = document.getElementById('profile-phone').querySelector('input');
+                const cityInput = document.getElementById('profile-city').querySelector('input');
+                const restInput = document.getElementById('profile-rest').querySelector('input');
+
+                const name = nameInput.value.trim();
+                const email = emailInput.value.trim();
+                const phone = phoneInput.value.trim();
+                const city = cityInput.value.trim();
+                const restName = restInput.value.trim();
+
+                // Validation Rules
+                const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                const phoneRegex = /^\d{10}$/;
+
+                let isValid = true;
+                let errorMsg = '';
+                let firstInvalidField = null;
+
+                // Reset error highlights
+                [nameInput, emailInput, phoneInput, cityInput, restInput].forEach(input => {
+                    input.classList.remove('input-error');
+                });
+
+                if (!name || name.length < 2) {
+                    errorMsg = 'Full Name must be at least 2 characters.';
+                    nameInput.classList.add('input-error');
+                    isValid = false;
+                    firstInvalidField = nameInput;
+                } else if (!email || !emailRegex.test(email)) {
+                    errorMsg = 'Please enter a valid email address.';
+                    emailInput.classList.add('input-error');
+                    isValid = false;
+                    firstInvalidField = emailInput;
+                } else if (!phone || !phoneRegex.test(phone.replace(/\D/g, ''))) {
+                    errorMsg = 'Phone number must be exactly 10 digits.';
+                    phoneInput.classList.add('input-error');
+                    isValid = false;
+                    firstInvalidField = phoneInput;
+                } else if (!city) {
+                    errorMsg = 'City is required.';
+                    cityInput.classList.add('input-error');
+                    isValid = false;
+                    firstInvalidField = cityInput;
+                } else if (!restName) {
+                    errorMsg = 'Restaurant Name is required.';
+                    restInput.classList.add('input-error');
+                    isValid = false;
+                    firstInvalidField = restInput;
+                }
+
+                if (!isValid) {
+                    showToast(errorMsg, 'error');
+                    if (firstInvalidField) {
+                        firstInvalidField.focus();
+                        firstInvalidField.addEventListener('input', () => {
+                            firstInvalidField.classList.remove('input-error');
+                        }, { once: true });
+                    }
+                    return;
+                }
+
                 const updates = {
-                    name: document.getElementById('profile-name').querySelector('input').value,
-                    email: document.getElementById('profile-email').querySelector('input').value,
-                    phone: document.getElementById('profile-phone').querySelector('input').value,
-                    city: document.getElementById('profile-city').querySelector('input').value,
-                    restaurantName: document.getElementById('profile-rest').querySelector('input').value
+                    name,
+                    email,
+                    phone: phone.replace(/\D/g, ''),
+                    city,
+                    restaurantName: restName
                 };
                 
                 // Save to localStorage
@@ -235,18 +298,84 @@ document.addEventListener('DOMContentLoaded', () => {
                 
                 isEditingRest = true;
             } else {
+                // Collect inputs for validation
+                const nameInput = document.getElementById('rest-name').querySelector('input');
+                const aboutInput = document.getElementById('rest-about-text').querySelector('textarea');
+                const cuisineInput = document.getElementById('rest-cuisine').querySelector('input');
+                const capacityInput = document.getElementById('rest-capacity').querySelector('input');
+                const locationInput = document.getElementById('rest-location').querySelector('input');
+                const hoursInput = document.getElementById('rest-hours').querySelector('input');
+                const parkingInput = document.getElementById('rest-parking').querySelector('input');
+                const dressInput = document.getElementById('rest-dress').querySelector('input');
+                const contactInput = document.getElementById('rest-contact').querySelector('input');
+
+                const name = nameInput.value.trim();
+                const about = aboutInput.value.trim();
+                const cuisine = cuisineInput.value.trim();
+                const capacity = capacityInput.value.trim();
+                const location = locationInput.value.trim();
+                const hours = hoursInput.value.trim();
+                const parking = parkingInput.value.trim();
+                const dressCode = dressInput.value.trim();
+                const contact = contactInput.value.trim();
+
+                // Validation Rules
+                let isValid = true;
+                let errorMsg = '';
+                let firstInvalidField = null;
+
+                // Reset highlights
+                [nameInput, aboutInput, cuisineInput, capacityInput, locationInput, hoursInput, parkingInput, dressInput, contactInput].forEach(inp => {
+                    inp.classList.remove('input-error');
+                });
+
+                const phoneRegex = /^\d{10}$/;
+
+                if (!name || name.length < 2) {
+                    errorMsg = 'Restaurant Name must be at least 2 characters.';
+                    isValid = false; firstInvalidField = nameInput;
+                } else if (!about || about.length < 10) {
+                    errorMsg = 'About section should be at least 10 characters.';
+                    isValid = false; firstInvalidField = aboutInput;
+                } else if (!cuisine) {
+                    errorMsg = 'Cuisine Type is required.';
+                    isValid = false; firstInvalidField = cuisineInput;
+                } else if (!capacity) {
+                    errorMsg = 'Seating Capacity is required.';
+                    isValid = false; firstInvalidField = capacityInput;
+                } else if (!location) {
+                    errorMsg = 'Location is required.';
+                    isValid = false; firstInvalidField = locationInput;
+                } else if (!hours) {
+                    errorMsg = 'Opening Hours are required.';
+                    isValid = false; firstInvalidField = hoursInput;
+                } else if (!parking) {
+                    errorMsg = 'Parking information is required.';
+                    isValid = false; firstInvalidField = parkingInput;
+                } else if (!dressCode) {
+                    errorMsg = 'Dress Code is required.';
+                    isValid = false; firstInvalidField = dressInput;
+                } else if (!contact || !phoneRegex.test(contact.replace(/\D/g, ''))) {
+                    errorMsg = 'Contact number must be exactly 10 digits.';
+                    isValid = false; firstInvalidField = contactInput;
+                }
+
+                if (!isValid) {
+                    showToast(errorMsg, 'error');
+                    if (firstInvalidField) {
+                        firstInvalidField.classList.add('input-error');
+                        firstInvalidField.focus();
+                        firstInvalidField.addEventListener('input', () => {
+                            firstInvalidField.classList.remove('input-error');
+                        }, { once: true });
+                    }
+                    return;
+                }
+
                 // Collect updates
                 const updates = {
-                    name: document.getElementById('rest-name').querySelector('input').value,
-                    about: document.getElementById('rest-about-text').querySelector('textarea').value,
-                    cuisine: document.getElementById('rest-cuisine').querySelector('input').value,
-                    capacity: document.getElementById('rest-capacity').querySelector('input').value,
-                    location: document.getElementById('rest-location').querySelector('input').value,
-                    hours: document.getElementById('rest-hours').querySelector('input').value,
-                    parking: document.getElementById('rest-parking').querySelector('input').value,
-                    dressCode: document.getElementById('rest-dress').querySelector('input').value,
-                    contact: document.getElementById('rest-contact').querySelector('input').value
-
+                    name, about, cuisine, capacity, location, hours, parking, dressCode,
+                    contact: contact.replace(/\D/g, '')
                 };
                 
                 StorageManager.updateRestaurantDetails(updates);

@@ -75,28 +75,28 @@ function loadBookingsFromStorage() {
 
         const mockData = [
             // --- YESTERDAY (6 Reservations) ---
-            { id: 'DT-10001', name: 'Amit Verma', phone: '+91 98765 00001', date: yesterday, time: '7:00 PM', guests: 2, email: 'amit@example.com', table: 'Table 1', status: 'Checked-In' },
-            { id: 'DT-10002', name: 'Sania Mirza', phone: '+91 98765 00002', date: yesterday, time: '7:30 PM', guests: 4, email: 'sania@example.com', table: 'Table 2', status: 'No-Show' },
-            { id: 'DT-10003', name: 'Peter Parker', phone: '+91 98765 00003', date: yesterday, time: '8:00 PM', guests: 2, email: 'peter@example.com', table: 'Table 3', status: 'Checked-In' },
-            { id: 'DT-10004', name: 'Ananya Roy', phone: '+91 98765 00004', date: yesterday, time: '8:30 PM', guests: 6, email: 'ananya@example.com', table: 'Table 4', status: 'Checked-In' },
-            { id: 'DT-10005', name: 'Rohan Khanna', phone: '+91 98765 00005', date: yesterday, time: '9:00 PM', guests: 2, email: 'rohan@example.com', table: 'Table 5', status: 'No-Show' },
-            { id: 'DT-10006', name: 'Sneha Nair', phone: '+91 98765 00006', date: yesterday, time: '9:30 PM', guests: 4, email: 'sneha@example.com', table: 'Table 6', status: 'Checked-In' },
+            { id: 'DT-10001', name: 'Amit Verma', phone: '9876500001', date: yesterday, time: '7:00 PM', guests: 2, email: 'amit@example.com', table: 'Table 1', status: 'Checked-In' },
+            { id: 'DT-10002', name: 'Sania Mirza', phone: '9876500002', date: yesterday, time: '7:30 PM', guests: 4, email: 'sania@example.com', table: 'Table 2', status: 'No-Show' },
+            { id: 'DT-10003', name: 'Peter Parker', phone: '9876500003', date: yesterday, time: '8:00 PM', guests: 2, email: 'peter@example.com', table: 'Table 3', status: 'Checked-In' },
+            { id: 'DT-10004', name: 'Ananya Roy', phone: '9876500004', date: yesterday, time: '8:30 PM', guests: 6, email: 'ananya@example.com', table: 'Table 4', status: 'Checked-In' },
+            { id: 'DT-10005', name: 'Rohan Khanna', phone: '9876500005', date: yesterday, time: '9:00 PM', guests: 2, email: 'rohan@example.com', table: 'Table 5', status: 'No-Show' },
+            { id: 'DT-10006', name: 'Sneha Nair', phone: '9876500006', date: yesterday, time: '9:30 PM', guests: 4, email: 'sneha@example.com', table: 'Table 6', status: 'Checked-In' },
 
             // --- TODAY (6 Reservations) ---
-            { id: 'DT-20001', name: 'Rahul Sharma', phone: '+91 98765 43210', date: today, time: '7:00 PM', guests: 4, email: 'rahul@example.com', table: 'Table 12', status: 'Checked-In' },
-            { id: 'DT-20002', name: 'Priya Verma', phone: '+91 98765 43211', date: today, time: '7:15 PM', guests: 2, email: 'priya@example.com', table: 'Table 14', status: 'Upcoming' },
-            { id: 'DT-20003', name: 'Arjun Mehta', phone: '+91 98765 43212', date: today, time: '7:45 PM', guests: 3, email: 'arjun@example.com', table: 'Table 15', status: 'No-Show' },
-            { id: 'DT-20004', name: 'Sanjay Gupta', phone: '+91 98765 43213', date: today, time: '8:00 PM', guests: 4, email: 'sanjay@example.com', table: 'Table 16', status: 'Upcoming' },
-            { id: 'DT-20005', name: 'Lakshmi Iyer', phone: '+91 98765 43214', date: today, time: '8:30 PM', guests: 2, email: 'lakshmi@example.com', table: 'Table 17', status: 'Checked-In' },
-            { id: 'DT-20006', name: 'Snehal Gupta', phone: '+91 98765 43215', date: today, time: '9:00 PM', guests: 5, email: 'snehal@example.com', table: 'Table 18', status: 'Upcoming' },
+            { id: 'DT-20001', name: 'Rahul Sharma', phone: '9876543210', date: today, time: '7:00 PM', guests: 4, email: 'rahul@example.com', table: 'Table 12', status: 'Checked-In' },
+            { id: 'DT-20002', name: 'Priya Verma', phone: '9876543211', date: today, time: '7:15 PM', guests: 2, email: 'priya@example.com', table: 'Table 14', status: 'Upcoming' },
+            { id: 'DT-20003', name: 'Arjun Mehta', phone: '9876543212', date: today, time: '7:45 PM', guests: 3, email: 'arjun@example.com', table: 'Table 15', status: 'No-Show' },
+            { id: 'DT-20004', name: 'Sanjay Gupta', phone: '9876543213', date: today, time: '8:00 PM', guests: 4, email: 'sanjay@example.com', table: 'Table 16', status: 'Upcoming' },
+            { id: 'DT-20005', name: 'Lakshmi Iyer', phone: '9876543214', date: today, time: '8:30 PM', guests: 2, email: 'lakshmi@example.com', table: 'Table 17', status: 'Checked-In' },
+            { id: 'DT-20006', name: 'Snehal Gupta', phone: '9876543215', date: today, time: '9:00 PM', guests: 5, email: 'snehal@example.com', table: 'Table 18', status: 'Upcoming' },
 
             // --- TOMORROW (6 Reservations) ---
-            { id: 'DT-30001', name: 'Vikram Singh', phone: '+91 98765 11111', date: tomorrow, time: '6:00 PM', guests: 2, email: 'vikram@example.com', table: 'Table 7', status: 'Upcoming' },
-            { id: 'DT-30002', name: 'Meera Reddy', phone: '+91 98765 11112', date: tomorrow, time: '6:30 PM', guests: 4, email: 'meera@example.com', table: 'Table 8', status: 'Upcoming' },
-            { id: 'DT-10015', name: 'Naveen Kumar', phone: '+91 98765 11113', date: tomorrow, time: '7:00 PM', guests: 6, email: 'naveen@example.com', table: 'Table 9', status: 'Upcoming' },
-            { id: 'DT-10016', name: 'Simran Kaur',  phone: '+91 98765 11114', date: tomorrow, time: '7:30 PM', guests: 2, email: 'simran@example.com', table: 'Table 10', status: 'Upcoming' },
-            { id: 'DT-10017', name: 'Vishal Sharma',  phone: '+91 98765 11115', date: tomorrow, time: '8:00 PM', guests: 3, email: 'vishal@example.com', table: 'Table 11', status: 'Upcoming' },
-            { id: 'DT-10018', name: 'Deepa Menon',   phone: '+91 98765 11116', date: tomorrow, time: '8:30 PM', guests: 8, email: 'deepa@example.com', table: 'Table 13', status: 'Upcoming' }
+            { id: 'DT-30001', name: 'Vikram Singh', phone: '9876511111', date: tomorrow, time: '6:00 PM', guests: 2, email: 'vikram@example.com', table: 'Table 7', status: 'Upcoming' },
+            { id: 'DT-30002', name: 'Meera Reddy', phone: '9876511112', date: tomorrow, time: '6:30 PM', guests: 4, email: 'meera@example.com', table: 'Table 8', status: 'Upcoming' },
+            { id: 'DT-10015', name: 'Naveen Kumar', phone: '9876511113', date: tomorrow, time: '7:00 PM', guests: 6, email: 'naveen@example.com', table: 'Table 9', status: 'Upcoming' },
+            { id: 'DT-10016', name: 'Simran Kaur',  phone: '9876511114', date: tomorrow, time: '7:30 PM', guests: 2, email: 'simran@example.com', table: 'Table 10', status: 'Upcoming' },
+            { id: 'DT-10017', name: 'Vishal Sharma',  phone: '9876511115', date: tomorrow, time: '8:00 PM', guests: 3, email: 'vishal@example.com', table: 'Table 11', status: 'Upcoming' },
+            { id: 'DT-10018', name: 'Deepa Menon',   phone: '9876511116', date: tomorrow, time: '8:30 PM', guests: 8, email: 'deepa@example.com', table: 'Table 13', status: 'Upcoming' }
         ];
         // Distribute the original mock data across different restaurants
         const rests = ['Spice Garden', 'Sushi Master', 'Burger Joint'];

@@ -42,16 +42,50 @@ editBtn.addEventListener('click', () => {
 
 saveBtn.addEventListener('click', () => {
     // Persist to localStorage
-    const data = {
-        name:  document.getElementById('full-name').value.trim(),
-        email: document.getElementById('email').value.trim(),
-        phone: document.getElementById('phone').value.trim(),
-    };
+    const nameInput = document.getElementById('full-name');
+    const emailInput = document.getElementById('email');
+    const phoneInput = document.getElementById('phone');
 
-    if (!data.name || !data.email) {
-        showToast('Name and email are required.', 'error');
+    const name = nameInput.value.trim();
+    const email = emailInput.value.trim();
+    const phone = phoneInput.value.trim();
+
+    // Validation Rules
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    const phoneRegex = /^\d{10}$/;
+
+    // Reset error highlights
+    [nameInput, emailInput, phoneInput].forEach(inp => inp.classList.remove('input-error'));
+
+    if (!name || name.length < 2) {
+        showToast('Name must be at least 2 characters.', 'error');
+        nameInput.classList.add('input-error');
+        nameInput.focus();
+        nameInput.addEventListener('input', () => nameInput.classList.remove('input-error'), { once: true });
         return;
     }
+
+    if (!email || !emailRegex.test(email)) {
+        showToast('Please enter a valid email address.', 'error');
+        emailInput.classList.add('input-error');
+        emailInput.focus();
+        emailInput.addEventListener('input', () => emailInput.classList.remove('input-error'), { once: true });
+        return;
+    }
+
+    if (!phone || !phoneRegex.test(phone.replace(/\D/g, ''))) {
+        showToast('Phone number must be exactly 10 digits.', 'error');
+        phoneInput.classList.add('input-error');
+        phoneInput.focus();
+        phoneInput.addEventListener('input', () => phoneInput.classList.remove('input-error'), { once: true });
+        return;
+    }
+
+    const data = {
+        name,
+        email,
+        phone: phone.replace(/\D/g, ''),
+    };
 
     // Sync with Registry (so login details stay updated)
     const session = JSON.parse(localStorage.getItem('dinetime_session'));
@@ -221,6 +255,11 @@ function showToast(message, type = 'success') {
             }
             .toast-success i { color: #22C55E; }
             .toast-error   i { color: #EF4444; }
+            .input-error {
+                border-color: #EF4444 !important;
+                background-color: #FEF2F2 !important;
+                box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1) !important;
+            }
             @keyframes slideUp {
                 to { transform: translateX(-50%) translateY(0); opacity: 1; }
             }
