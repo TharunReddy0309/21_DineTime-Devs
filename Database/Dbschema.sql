@@ -14,6 +14,7 @@ CREATE TABLE LOCATION (
 CREATE TABLE USER (
     user_id INT AUTO_INCREMENT PRIMARY KEY,
     name VARCHAR(100) NOT NULL,
+    password_hash VARCHAR(255) NOT NULL,
     phone VARCHAR(20) NOT NULL UNIQUE,
     email VARCHAR(150) NOT NULL UNIQUE,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
@@ -26,7 +27,6 @@ CREATE TABLE USER (
 
 CREATE TABLE DINER (
     diner_id INT PRIMARY KEY,
-    password_hash VARCHAR(255) NOT NULL,
     loyalty_points INT DEFAULT 0 CHECK (loyalty_points >= 0),
     CONSTRAINT fk_diner_user
         FOREIGN KEY (diner_id)
@@ -35,7 +35,6 @@ CREATE TABLE DINER (
 
 CREATE TABLE RESTAURANT_MANAGER (
     manager_id INT PRIMARY KEY,
-    password_hash VARCHAR(255) NOT NULL,
     business_license_number VARCHAR(100) UNIQUE NOT NULL,
     government_id VARCHAR(100) UNIQUE NOT NULL,
     verified_status BOOLEAN DEFAULT FALSE,
@@ -66,7 +65,6 @@ CREATE TABLE RESTAURANT_STAFF (
     staff_id INT AUTO_INCREMENT PRIMARY KEY,
     restaurant_id INT NOT NULL,
     employee_code VARCHAR(100) UNIQUE NOT NULL,
-    password_hash VARCHAR(255) NOT NULL,
     role_type VARCHAR(50) NOT NULL,
     CONSTRAINT fk_staff_restaurant
         FOREIGN KEY (restaurant_id)
