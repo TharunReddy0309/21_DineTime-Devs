@@ -1,6 +1,6 @@
 // profile.js - connected to global DinetimeStore
 
-var mockNotifications = [];
+var notifications = [];
 
 let currentRatingId = null;
 let currentStarValue = 0;
@@ -10,6 +10,7 @@ function initProfile() {
     try {
         setupEventListeners();
         loadUserDetails();
+        notifications = (DinetimeStore.getNotifications && DinetimeStore.getNotifications()) || [];
         renderUpcoming();
         renderHistory();
         renderNotifications();
@@ -52,7 +53,7 @@ function renderNotifications() {
     const list = document.getElementById('notifList');
     if (!list) return;
     
-    if (mockNotifications.length === 0) {
+    if (notifications.length === 0) {
         list.innerHTML = '<p class="empty-notif-msg">You have no new notifications</p>';
         list.classList.add('empty-state');
         return;
@@ -60,7 +61,7 @@ function renderNotifications() {
     
     list.classList.remove('empty-state');
     list.innerHTML = '';
-    mockNotifications.forEach(n => {
+    notifications.forEach(n => {
         let div = document.createElement('div');
         div.className = 'notif-item';
         div.innerHTML = `
@@ -149,15 +150,15 @@ function viewDetails(id) {
     window.location.href = `details.html?id=${id}`;
 }
 
-function cancelReservation(id) {
+async function cancelReservation(id) {
     const allReservations = DinetimeStore.getReservations();
     let res = allReservations.find(r => r.id === id);
     if(res) {
         showConfirmModal(
             'Cancel Reservation',
             `Are you sure you want to cancel your reservation at ${res.restaurant}?`,
-            () => {
-                DinetimeStore.cancelReservation(id);
+            async () => {
+                await DinetimeStore.cancelReservation(id);
                 renderUpcoming();
                 renderHistory();
                 showToast("Reservation cancelled successfully.");
@@ -401,7 +402,7 @@ function setupEventListeners() {
 
     const btnSubmitRate = document.getElementById('btnSubmitRate');
     if (btnSubmitRate) {
-        btnSubmitRate.addEventListener('click', () => {
+        btnSubmitRate.addEventListener('click', async () => {
             if(currentStarValue === 0) {
                 showToast('Please select a star rating.', 'error');
                 return;
@@ -409,10 +410,26 @@ function setupEventListeners() {
             const allRes = DinetimeStore.getReservations();
             let resIndex = allRes.findIndex(r => r.id === currentRatingId);
             if(resIndex !== -1) {
-                allRes[resIndex].hasRated = true;
-                allRes[resIndex].rating = currentStarValue;
-                allRes[resIndex].reviewText = document.getElementById('iptReview').value;
-                DinetimeStore.setReservations(allRes);
+                const user = DinetimeStore.getUser() || {};
+                const reservation = allRes[resIndex];
+                const reviewText = document.getElementById('iptReview').value;
+                if (user.backend_user_id && reservation.restaurant_id) {
+                    try {
+                        await DinetimeStore.addReview({
+                            user_id: user.backend_user_id,
+                            restaurant_id: reservation.restaurant_id,
+                            rating: currentStarValue,
+                            comment: reviewText || 'Great experience!',
+                        });
+                        allRes[resIndex].hasRated = true;
+                        allRes[resIndex].rating = currentStarValue;
+                        allRes[resIndex].reviewText = reviewText;
+                        DinetimeStore.setReservations(allRes);
+                    } catch (_e) {
+                        showToast('Unable to submit review right now.', 'error');
+                        return;
+                    }
+                }
             }
             closeRatingModal();
             renderHistory();
@@ -543,16 +560,28 @@ function setStars(val) {
 }
 
 function showToast(message, type = 'success') {
-    const toast = document.createElement('div');
-    toast.className = `toast-notification ${type === 'error' ? 'error' : ''}`;
-    const icon = type === 'error' ? 'fa-triangle-exclamation' : 'fa-circle-check';
-    toast.innerHTML = `<i class="fa-solid ${icon}"></i><span>${message}</span>`;
-    document.body.appendChild(toast);
-    setTimeout(() => toast.classList.add('show'), 10);
-    setTimeout(() => {
-        toast.classList.remove('show');
-        setTimeout(() => toast.remove(), 300);
-    }, 4000);
+    const toast = document.getElementById('toast');
+    const msg = document.getElementById('toastMsg');
+    
+    if (toast && msg) {
+        toast.className = `toast ${type === 'error' ? 'error' : ''}`;
+        msg.innerText = message;
+        
+        const icon = toast.querySelector('i');
+        if (icon) {
+            icon.className = `fa-solid ${type === 'error' ? 'fa-triangle-exclamation' : 'fa-circle-check'} toast-icon`;
+            if (type === 'error') {
+                icon.style.color = '#ef4444';
+            } else {
+                icon.style.color = '#4ade80';
+            }
+        }
+
+        toast.classList.remove('hidden');
+        setTimeout(() => {
+            toast.classList.add('hidden');
+        }, 4000);
+    }
 }
 
 function showConfirmModal(title, message, onConfirm) {
@@ -582,7 +611,18 @@ function showConfirmModal(title, message, onConfirm) {
 
 // Ensure initialization runs even if DOMContentLoaded has already passed
 if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', initProfile);
+    document.addEventListener('DOMContentLoaded', async () => {
+        if (window.DinetimeStore && typeof DinetimeStore.ready === 'function') {
+            await DinetimeStore.ready();
+        }
+        initProfile();
+    });
 } else {
-    initProfile();
+    Promise.resolve()
+        .then(async () => {
+            if (window.DinetimeStore && typeof DinetimeStore.ready === 'function') {
+                await DinetimeStore.ready();
+            }
+        })
+        .then(() => initProfile());
 }

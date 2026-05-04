@@ -1,6 +1,6 @@
 // payment_making.js
 
-var mockReservation = {
+var reservationState = {
   restaurantId: 1,
   date: "Friday, 22 March",
   time: "7:00 PM",
@@ -37,24 +37,24 @@ function loadReservationState() {
     var dateObj = new Date(date + 'T12:00:00');
     var days = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
     var months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
-    mockReservation.date = days[dateObj.getDay()] + ', ' + dateObj.getDate() + ' ' + months[dateObj.getMonth()];
+    reservationState.date = days[dateObj.getDay()] + ', ' + dateObj.getDate() + ' ' + months[dateObj.getMonth()];
   }
-  if (time) mockReservation.time = time;
-  if (guests) mockReservation.guests = guests;
-  if (tableType) mockReservation.tableType = tableType;
+  if (time) reservationState.time = time;
+  if (guests) reservationState.guests = guests;
+  if (tableType) reservationState.tableType = tableType;
   
   var tableName = getUrlParam('tableName');
-  if (tableName) mockReservation.tableName = tableName;
-  if (special) mockReservation.specialRequest = special;
+  if (tableName) reservationState.tableName = tableName;
+  if (special) reservationState.specialRequest = special;
 
-  mockReservation.restaurantId = id;
+  reservationState.restaurantId = id;
 }
 
 function calcCost() {
-  var deposit = mockReservation.deposit;
-  var service = mockReservation.serviceFee;
-  var taxes = mockReservation.taxes;
-  var discountAmt = Math.round((deposit + service) * (mockReservation.discountPct / 100));
+  var deposit = reservationState.deposit;
+  var service = reservationState.serviceFee;
+  var taxes = reservationState.taxes;
+  var discountAmt = Math.round((deposit + service) * (reservationState.discountPct / 100));
   var total = deposit + service + taxes - discountAmt;
   return { deposit: deposit, service: service, taxes: taxes, discountAmt: discountAmt, total: total };
 }
@@ -79,7 +79,7 @@ function renderInfoGrid() {
   var grid = document.getElementById('infoGrid');
   if(!grid) return;
 
-  var r = mockReservation;
+  var r = reservationState;
   grid.innerHTML =
     infoTile('fa-regular fa-calendar', 'Date', r.date) +
     infoTile('fa-regular fa-clock', 'Time', r.time) +
@@ -101,7 +101,7 @@ function renderSpecialRequests() {
   var box = document.getElementById('specialRequestsBox');
   if(!box) return;
 
-  var req = mockReservation.specialRequest;
+  var req = reservationState.specialRequest;
   if (!req || req.trim() === '') {
     box.style.display = 'none';
     return;
@@ -120,7 +120,7 @@ function renderCost() {
         costLine('Reservation Deposit', '\u20B9' + cost.deposit) +
         costLine('Platform Service Fee', '\u20B9' + cost.service) +
         costLine('Taxes', '\u20B9' + cost.taxes) +
-        costLineDiscount('Discount (' + mockReservation.discountPct + '%)', '-\u20B9' + cost.discountAmt);
+        costLineDiscount('Discount (' + reservationState.discountPct + '%)', '-\u20B9' + cost.discountAmt);
   }
 
   var totalRow = document.getElementById('costTotalRow');
@@ -153,7 +153,7 @@ function buildModifyLink(restaurantId) {
 function init() {
   loadReservationState();
 
-  var restaurant = getRestaurant(mockReservation.restaurantId);
+  var restaurant = getRestaurant(reservationState.restaurantId);
 
   document.title = 'DineTime - Review Payment';
 
@@ -161,7 +161,7 @@ function init() {
   renderInfoGrid();
   renderSpecialRequests();
   renderCost();
-  buildModifyLink(mockReservation.restaurantId);
+  buildModifyLink(reservationState.restaurantId);
 
   const btnProceed = document.getElementById('btnProceed');
   if(btnProceed) {
@@ -174,4 +174,9 @@ function init() {
   }
 }
 
-document.addEventListener('DOMContentLoaded', init);
+document.addEventListener('DOMContentLoaded', async () => {
+  if (window.DinetimeStore && typeof DinetimeStore.ready === 'function') {
+    await DinetimeStore.ready();
+  }
+  init();
+});

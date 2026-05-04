@@ -5,10 +5,20 @@
 let cart = [];
 let currentCategory = 'All';
 let searchQuery = '';
+let currentRestaurantBackendId = '';
+
+function formatRupees(value) {
+  const amount = Number(value || 0);
+  return `₹${Math.round(amount)}`;
+}
 
 function renderCategories() {
   const container = document.getElementById('categoryFilters');
-  const cats = ['All', 'Starter', 'Main Course', 'Deserts', 'Drinks'];
+  const menuItems = (DinetimeStore.getMenu() || []).filter((item) =>
+    !currentRestaurantBackendId || item.restaurant_id === currentRestaurantBackendId,
+  );
+  const categories = Array.from(new Set(menuItems.map((item) => item.cat).filter(Boolean)));
+  const cats = ['All', ...categories];
   if(container) {
       container.innerHTML = cats.map(c => 
         `<button class="btn-category ${currentCategory === c ? 'active' : ''}" data-cat="${c}">${c}</button>`
@@ -29,7 +39,10 @@ function renderMenu() {
   if(!grid) return;
 
   const allMenu = DinetimeStore.getMenu();
-  const filtered = allMenu.filter(item => {
+  const scopedMenu = allMenu.filter((item) =>
+    !currentRestaurantBackendId || item.restaurant_id === currentRestaurantBackendId,
+  );
+  const filtered = scopedMenu.filter(item => {
     const matchCat = currentCategory === 'All' || item.cat === currentCategory;
     const matchSearch = item.name.toLowerCase().includes(searchQuery.toLowerCase());
     return matchCat && matchSearch;
@@ -55,7 +68,7 @@ function renderMenu() {
           <div class="special-info">
             <div class="special-name-row">
               <h3 class="bar-name">${item.name}</h3>
-              <span class="special-price">$${item.price.toFixed(2)}</span>
+              <span class="special-price">${formatRupees(item.price)}</span>
             </div>
             <button class="btn-add-special" onclick="addToCart(${item.id})">Add to order</button>
           </div>
@@ -70,7 +83,7 @@ function renderMenu() {
         <img src="${item.image}" alt="${item.name}" class="bar-img" onerror="this.src='../images/logo.png'">
         <div class="bar-info">
           <h3 class="bar-name">${item.name}</h3>
-          <span class="bar-price">$${item.price.toFixed(2)}</span>
+          <span class="bar-price">${formatRupees(item.price)}</span>
         </div>
         <button class="btn-add-simple" onclick="addToCart(${item.id})">Add to order</button>
       </div>`;
@@ -80,7 +93,8 @@ function renderMenu() {
 }
 
 window.addToCart = function(id) {
-  const item = DinetimeStore.getMenu().find(i => i.id === id);
+  const item = DinetimeStore.getMenu().find(i => i.id === id && (!currentRestaurantBackendId || i.restaurant_id === currentRestaurantBackendId));
+  if (!item) return;
   const existing = cart.find(c => c.id === id);
   if (existing) {
     existing.qty++;
@@ -126,7 +140,7 @@ function renderCart() {
     <div class="cart-item">
       <div class="cart-item-info">
         <span class="cart-item-name">${item.name}</span>
-        <span class="cart-item-price">$${(item.price * item.qty).toFixed(2)}</span>
+        <span class="cart-item-price">${formatRupees(item.price * item.qty)}</span>
       </div>
       <div class="cart-controls">
         <div class="qty-btn-group">
@@ -147,9 +161,9 @@ function calculateTotals() {
   const tax = subtotal * 0.10;
   const total = subtotal + tax;
 
-  document.getElementById('cartSubtotal').textContent = '$' + subtotal.toFixed(2);
-  document.getElementById('cartTax').textContent = '$' + tax.toFixed(2);
-  document.getElementById('cartTotal').textContent = '$' + total.toFixed(2);
+  document.getElementById('cartSubtotal').textContent = formatRupees(subtotal);
+  document.getElementById('cartTax').textContent = formatRupees(tax);
+  document.getElementById('cartTotal').textContent = formatRupees(total);
 }
 
 function showToast(message, type = 'success') {
@@ -214,6 +228,7 @@ function init() {
   }
 
   if(res) {
+      currentRestaurantBackendId = res.restaurant_id || '';
       const imgTarget = document.getElementById('infoResImg');
       if(imgTarget) imgTarget.src = res.image;
 
@@ -242,6 +257,8 @@ function init() {
      
      const nameTarget = document.getElementById('infoResName');
      if(nameTarget) nameTarget.textContent = resId ? decodeURIComponent(resId) : 'Spice Garden';
+     const spice = (DinetimeStore.getRestaurants() || []).find((r) => String(r.name || '').toLowerCase() === 'spice garden');
+     currentRestaurantBackendId = spice?.backend_id || '';
   }
 
   const searchInput = document.getElementById('searchInput');
@@ -262,16 +279,32 @@ function init() {
   const btnCheckout = document.getElementById('btnCheckout');
   if(btnCheckout) {
       btnCheckout.addEventListener('click', () => {
-         showConfirmModal(
-           'Order Placed', 
-           'Your order has been placed successfully! Returning to your reservations.', 
-           () => {
-             cart = [];
-             renderCart();
-             window.location.href = 'reservations.html';
-           },
-           false
-         );
+         if (!res || !res.id) {
+           showToast('Please select a reservation before placing an order.', 'error');
+           return;
+         }
+         const items = cart.map((item) => ({
+           item_id: item.backend_id,
+           quantity: item.qty,
+           price: item.price,
+         }));
+         DinetimeStore.addOrder({
+           reservation_id: res.id,
+           items,
+         }).then(() => {
+           showConfirmModal(
+             'Order Placed',
+             'Your order has been placed successfully! Returning to your reservations.',
+             () => {
+               cart = [];
+               renderCart();
+               window.location.href = 'reservations.html';
+             },
+             false,
+           );
+         }).catch(() => {
+           showToast('Unable to place order right now.', 'error');
+         });
       });
   }
 
@@ -280,4 +313,9 @@ function init() {
   renderCart();
 }
 
-document.addEventListener('DOMContentLoaded', init);
+document.addEventListener('DOMContentLoaded', async () => {
+  if (window.DinetimeStore && typeof DinetimeStore.ready === 'function') {
+    await DinetimeStore.ready();
+  }
+  init();
+});

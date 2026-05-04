@@ -127,19 +127,6 @@ function renderList() {
   });
 }
 
-function showToast(message, type = 'success') {
-  const toast = document.createElement('div');
-  toast.className = `toast-notification ${type === 'error' ? 'error' : ''}`;
-  const icon = type === 'error' ? 'fa-triangle-exclamation' : 'fa-circle-check';
-  toast.innerHTML = `<i class="fa-solid ${icon}"></i><span>${message}</span>`;
-  document.body.appendChild(toast);
-  setTimeout(() => toast.classList.add('show'), 10);
-  setTimeout(() => {
-      toast.classList.remove('show');
-      setTimeout(() => toast.remove(), 300);
-  }, 4000);
-}
-
 function showConfirmModal(title, message, onConfirm) {
   const overlay = document.getElementById('modal-overlay');
   const titleEl = document.getElementById('modal-title');
@@ -172,8 +159,8 @@ function cancelReservation(id) {
     showConfirmModal(
       'Cancel Reservation',
       'Are you sure you want to cancel your reservation at ' + res.restaurant + '?',
-      () => {
-        DinetimeStore.cancelReservation(id);
+      async () => {
+        await DinetimeStore.cancelReservation(id);
         renderList();
         showToast('Reservation cancelled. You will receive an email confirmation.');
       }
@@ -220,4 +207,27 @@ function init() {
   if (bc) bc.addEventListener('click', clearFilters);
 }
 
-document.addEventListener('DOMContentLoaded', init);
+async function refreshFromBackendAndRender() {
+  if (window.DinetimeStore && typeof DinetimeStore.syncFromBackend === 'function') {
+    try {
+      await DinetimeStore.syncFromBackend();
+    } catch (_e) {
+    }
+  }
+  renderList();
+}
+
+document.addEventListener('DOMContentLoaded', async () => {
+  if (window.DinetimeStore && typeof DinetimeStore.ready === 'function') {
+    await DinetimeStore.ready();
+  }
+  init();
+  await refreshFromBackendAndRender();
+  setInterval(refreshFromBackendAndRender, 5000);
+  window.addEventListener('focus', refreshFromBackendAndRender);
+  document.addEventListener('visibilitychange', () => {
+    if (!document.hidden) {
+      void refreshFromBackendAndRender();
+    }
+  });
+});

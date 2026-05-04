@@ -119,4 +119,9 @@ function init() {
   }
 }
 
-document.addEventListener('DOMContentLoaded', init);
+document.addEventListener('DOMContentLoaded', async () => {
+  if (window.DinetimeStore && typeof DinetimeStore.ready === 'function') {
+    await DinetimeStore.ready();
+  }
+  init();
+});

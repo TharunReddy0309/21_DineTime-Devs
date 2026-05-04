@@ -119,7 +119,7 @@ function populateForm() {
     hasUnsavedChanges = false;
 }
 
-function updateStoreFromForm() {
+async function updateStoreFromForm() {
     const user = DinetimeStore.getUser() || {};
     const settings = DinetimeStore.getSettings() || {};
 
@@ -156,6 +156,21 @@ function updateStoreFromForm() {
 
     DinetimeStore.setUser(user);
     DinetimeStore.setSettings(settings);
+
+    if (user.backend_user_id) {
+        try {
+            await DinetimeStore._request(`/users/${user.backend_user_id}`, {
+                method: 'PATCH',
+                headers: DinetimeStore._headers('diner'),
+                body: JSON.stringify({
+                    name: user.name,
+                    email: user.email,
+                    phone: user.phone,
+                }),
+            });
+        } catch (_e) {
+        }
+    }
 }
 
 function init() {
@@ -179,7 +194,7 @@ function init() {
          );
     });
 
-    document.getElementById('btnSaveAccount').addEventListener('click', () => {
+    document.getElementById('btnSaveAccount').addEventListener('click', async () => {
         const requiredFields = [
             { id: 'iptName', name: 'Full Name' },
             { id: 'iptEmail', name: 'Email Address' },
@@ -252,7 +267,7 @@ function init() {
             return;
         }
 
-        updateStoreFromForm();
+        await updateStoreFromForm();
         hasUnsavedChanges = false;
         showToast('Account settings saved successfully!');
     });
@@ -311,4 +326,9 @@ function init() {
     });
 }
 
-document.addEventListener('DOMContentLoaded', init);
+document.addEventListener('DOMContentLoaded', async () => {
+    if (window.DinetimeStore && typeof DinetimeStore.ready === 'function') {
+        await DinetimeStore.ready();
+    }
+    init();
+});

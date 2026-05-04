@@ -105,7 +105,16 @@ function initializeData() {
 }
 
 function createCardElement(r, index) {
-  const slotsHtml = r.availableSlots.map(time => `<span class="time-pill">${time}</span>`).join('');
+  const to12h = (time) => {
+    if (!time) return '';
+    const [hRaw, mRaw] = String(time).split(':');
+    let h = Number(hRaw);
+    const m = mRaw || '00';
+    const ampm = h >= 12 ? 'PM' : 'AM';
+    h = h % 12 || 12;
+    return `${h}:${m} ${ampm}`;
+  };
+  const slotsHtml = r.availableSlots.map(time => `<span class="time-pill">${to12h(time)}</span>`).join('');
   
   const card = document.createElement('div');
   card.className = 'card';
@@ -164,13 +173,25 @@ function renderRestaurants(list) {
   const noResults = document.querySelector('#no-results');
   const resultsCount = document.querySelector('#resultsCount');
   
-  if(!container || !topRatedContainer) return;
+  if(!container || !topRatedContainer || !popularContainer) return;
 
   container.innerHTML = "";
   topRatedContainer.innerHTML = "";
   popularContainer.innerHTML = "";
 
-  if (filtersState.searchQuery || filtersState.cuisine.length > 0 || filtersState.minRating > 0 || filtersState.maxDistance < 10 || filtersState.timeSlot !== "") {
+    if (!list.length) {
+      searchSection.classList.add('hidden');
+      topRatedSection.classList.add('hidden');
+      popularSection.classList.add('hidden');
+      noResults.classList.remove('hidden');
+      const emptyTitle = noResults.querySelector('h3');
+      const emptyText = noResults.querySelector('p');
+      if (emptyTitle) emptyTitle.textContent = 'No restaurants available yet';
+      if (emptyText) emptyText.textContent = 'Backend returned no restaurants. Start backend seeding or add restaurants from manager panel.';
+      return;
+    }
+
+    if (filtersState.searchQuery || filtersState.cuisine.length > 0 || filtersState.minRating > 0 || filtersState.maxDistance < 10 || filtersState.timeSlot !== "") {
      topRatedSection.classList.add('hidden');
      popularSection.classList.add('hidden');
      
@@ -198,6 +219,18 @@ function renderRestaurants(list) {
 }
 
 function executeFiltering() {
+  const to24h = (value) => {
+    if (!value) return '';
+    const m = String(value).trim().match(/^(\d{1,2}):(\d{2})\s*([AP]M)$/i);
+    if (!m) return String(value).slice(0, 5);
+    let hh = Number(m[1]);
+    const mm = m[2];
+    const period = m[3].toUpperCase();
+    if (period === 'PM' && hh !== 12) hh += 12;
+    if (period === 'AM' && hh === 12) hh = 0;
+    return `${String(hh).padStart(2, '0')}:${mm}`;
+  };
+
   const allRestaurants = DinetimeStore.getRestaurants();
   const filtered = allRestaurants.filter(r => {
     const searchMatch = !filtersState.searchQuery || 
@@ -208,7 +241,8 @@ function executeFiltering() {
     
     const ratingMatch = r.rating >= filtersState.minRating;
     const distanceMatch = r.distance <= filtersState.maxDistance;
-    const timeMatch = !filtersState.timeSlot || r.availableSlots.some(time => time.includes(filtersState.timeSlot));
+    const desired24 = to24h(filtersState.timeSlot);
+    const timeMatch = !filtersState.timeSlot || r.availableSlots.some(time => String(time).slice(0, 5) === desired24);
     
     return searchMatch && cuisineMatch && ratingMatch && distanceMatch && timeMatch;
   });
@@ -230,4 +264,15 @@ function init() {
   executeFiltering();
 }
 
-init();
+document.addEventListener('DOMContentLoaded', async () => {
+  if (window.DinetimeStore && typeof DinetimeStore.ready === 'function') {
+    await DinetimeStore.ready();
+    if (typeof DinetimeStore.syncFromBackend === 'function') {
+      try {
+        await DinetimeStore.syncFromBackend();
+      } catch (_e) {
+      }
+    }
+  }
+  init();
+});

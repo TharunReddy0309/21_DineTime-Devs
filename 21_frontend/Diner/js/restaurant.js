@@ -17,8 +17,11 @@ function getUrlId() {
 
 function renderCarousel(images) {
   const track = document.querySelector('#carouselTrack');
-  totalSlides = images.length;
-  track.innerHTML = images.map(src =>
+  const safeImages = Array.isArray(images) && images.length
+    ? images
+    : ['../images/indian.jpg', '../images/main.png'];
+  totalSlides = safeImages.length;
+  track.innerHTML = safeImages.map(src =>
     `<div class="carousel-slide"><img src="${src}" alt="Restaurant" /></div>`
   ).join('');
   updateCarouselCounter();
@@ -63,7 +66,11 @@ function renderAbout(restaurant) {
 }
 
 function renderHours(operationalHours) {
-  document.querySelector('#hoursList').innerHTML = operationalHours.map(row => `
+  const safeHours = Array.isArray(operationalHours) && operationalHours.length
+    ? operationalHours
+    : [{ days: 'Everyday', hours: '11:00 AM - 10:30 PM', isOpen: true }];
+
+  document.querySelector('#hoursList').innerHTML = safeHours.map(row => `
     <div class="hours-row">
       <span class="hours-label">
         ${row.days}
@@ -75,7 +82,11 @@ function renderHours(operationalHours) {
 }
 
 function renderMenu(menuImages) {
-  document.querySelector('#menuGrid').innerHTML = menuImages.map(src => `
+  const safeMenuImages = Array.isArray(menuImages) && menuImages.length
+    ? menuImages
+    : ['../images/menu1.png', '../images/menu2.png'];
+
+  document.querySelector('#menuGrid').innerHTML = safeMenuImages.map(src => `
     <div class="menu-img-wrapper">
       <img src="${src}" alt="Menu" loading="lazy" />
     </div>
@@ -83,7 +94,11 @@ function renderMenu(menuImages) {
 }
 
 function renderReviews(reviews) {
-  document.querySelector('#reviewsGrid').innerHTML = reviews.map(r => `
+  const safeReviews = Array.isArray(reviews) && reviews.length
+    ? reviews
+    : [{ name: 'Guest', stars: 4, text: 'Nice food and service.', avatar: '../images/logo.png' }];
+
+  document.querySelector('#reviewsGrid').innerHTML = safeReviews.map(r => `
     <div class="review-card">
       <div class="reviewer-row">
         <img src="${r.avatar}" alt="${r.name}" class="reviewer-avatar" />
@@ -142,4 +157,9 @@ function init() {
   }
 }
 
-document.addEventListener('DOMContentLoaded', init);
+document.addEventListener('DOMContentLoaded', async () => {
+  if (window.DinetimeStore && typeof DinetimeStore.ready === 'function') {
+    await DinetimeStore.ready();
+  }
+  init();
+});

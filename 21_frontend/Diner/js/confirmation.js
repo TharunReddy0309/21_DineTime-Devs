@@ -107,7 +107,7 @@ function renderPaymentBox(total, method) {
     '</div>';
 }
 
-function init() {
+async function init() {
   var restaurantId = parseInt(getUrlParam('id')) || 1;
   var rawDate     = getUrlParam('date');
   var time        = getUrlParam('time')   || '7:00 PM';
@@ -123,75 +123,61 @@ function init() {
   var tableNo = tableName || (tableType === 'Window Table' ? 'Table NO-2' : (tableType === 'Large Table' ? 'Table NO-8' : 'Table NO-5'));
   var displayTable = tableName ? tableName + ' (' + tableType + ')' : tableType;
 
-  // Add the reservation to our unified DinetimeStore!
-  DinetimeStore.addReservation({
-      id: reservationId,
-      restaurant: restaurant.name,
-      cuisine: restaurant.cuisine,
-      image: restaurant.image,
-      status: 'Confirmed',
-      date: formattedDate,
-      time: time,
-      guests: guests,
-      tableType: tableType,
-      tableNo: tableNo,
-      location: restaurant.location
-  });
-
-  // Sync to Restaurant Staff pipeline via dinetime_bookings_v5
-  var user = (typeof DinetimeStore !== 'undefined' && DinetimeStore.getUser()) || { name: 'Guest User', phone: 'Unknown', email: 'guest@example.com' };
-  var staffDateStr = rawDate || new Date().toISOString().split('T')[0];
-  var staffBookingsStr = localStorage.getItem('dinetime_bookings_v5');
-  var staffBookings = staffBookingsStr ? JSON.parse(staffBookingsStr) : [];
-  
-  staffBookings.unshift({
-      id: reservationId,
-      name: user.name || 'Guest User',
-      phone: user.phone || 'Unknown',
-      date: staffDateStr,
-      time: time,
-      guests: parseInt(guests) || 2,
-      email: user.email || 'guest@example.com',
-      table: tableNo,
-      status: 'Upcoming',
-      restaurant: restaurant.name
-  });
-  localStorage.setItem('dinetime_bookings_v5', JSON.stringify(staffBookings));
-
-  // Sync to Restaurant Manager pipeline via dinetimeData_v2
+  let createdReservation = null;
+  let reservationError = '';
   try {
-      var managerDataStr = localStorage.getItem('dinetimeData_v2');
-      if (managerDataStr) {
-          var managerData = JSON.parse(managerDataStr);
-          if (managerData && managerData.users) {
-              for (var key in managerData.users) {
-                  var managerUser = managerData.users[key];
-                  if (managerUser && managerUser.restaurant && managerUser.restaurant.name === restaurant.name) {
-                      if (!managerUser.reservations) managerUser.reservations = [];
-                      managerUser.reservations.unshift({
-                          id: reservationId,
-                          name: user.name || 'Guest User',
-                          email: user.email || 'guest@example.com',
-                          phone: user.phone || 'Unknown',
-                          date: staffDateStr,
-                          time: time,
-                          guests: guests,
-                          table: tableNo,
-                          status: 'Confirmed',
-                          request: 'Online Booking'
-                      });
-                  }
-              }
-              localStorage.setItem('dinetimeData_v2', JSON.stringify(managerData));
-          }
-      }
-  } catch(e) {}
+    createdReservation = await DinetimeStore.addReservation({
+      restaurantId: restaurantId,
+      restaurant_backend_id: getUrlParam('restaurant_backend_id') || (restaurant && restaurant.backend_id),
+      table_id: getUrlParam('table_id'),
+      slot_id: getUrlParam('slot_id'),
+      guests: guests
+    });
+  } catch (e) {
+    reservationError = (e && e.message) ? e.message : 'Unable to create reservation.';
+  }
 
-  document.title = 'DineTime - Reservation Confirmed';
+  if (createdReservation && createdReservation.id) {
+    reservationId = createdReservation.id;
+    try {
+      await DinetimeStore.addPayment({
+        reservation_id: createdReservation.id,
+        amount: Number(total),
+        payment_method: method,
+        transaction_ref: `txn_${Date.now()}`,
+        payment_status: 'paid',
+      });
+    } catch (_e) {
+    }
+  }
 
-  renderRestaurant(restaurant);
-  renderBookingGrid(reservationId, formattedDate, time, guests, displayTable);
+  const reservationCreated = Boolean(createdReservation && createdReservation.id);
+  document.title = reservationCreated ? 'DineTime - Reservation Confirmed' : 'DineTime - Reservation Failed';
+
+  renderRestaurant(restaurant || {
+    image: '../images/logo.png',
+    name: 'DineTime Restaurant',
+    cuisine: 'Cuisine',
+    rating: '4.5',
+    location: 'Bangalore'
+  });
+  renderBookingGrid(reservationCreated ? reservationId : 'N/A', formattedDate, time, guests, displayTable);
   renderPaymentBox(total, method);
+
+  if (!reservationCreated) {
+    const titleEl = document.querySelector('.confirmed-title');
+    const subEl = document.querySelector('.confirmed-sub');
+    if (titleEl) titleEl.textContent = 'Reservation Not Confirmed';
+    if (subEl) subEl.textContent = reservationError || 'Unable to reserve this table. Please retry with another slot.';
+
+    const hero = document.querySelector('.success-hero');
+    if (hero) {
+      const msg = document.createElement('div');
+      msg.style.cssText = 'margin-top:12px;padding:10px 12px;border:1px solid #FECACA;background:#FEF2F2;color:#B91C1C;border-radius:8px;font-weight:600;';
+      msg.innerHTML = '<i class="fa-solid fa-triangle-exclamation"></i> ' + (reservationError || 'Reservation failed.');
+      hero.appendChild(msg);
+    }
+  }
 
   var btnExplore = document.getElementById('btnExplore');
   if(btnExplore) {
@@ -208,4 +194,9 @@ function init() {
   }
 }
 
-document.addEventListener('DOMContentLoaded', init);
+document.addEventListener('DOMContentLoaded', async () => {
+  if (window.DinetimeStore && typeof DinetimeStore.ready === 'function') {
+    await DinetimeStore.ready();
+  }
+  await init();
+});

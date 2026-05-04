@@ -1,4 +1,24 @@
 document.addEventListener('DOMContentLoaded', () => {
+    const API_BASE = (window.DINETIME_CONFIG && window.DINETIME_CONFIG.API_BASE) || 'http://localhost:3000';
+
+    const apiRequest = async (path, options = {}, role = 'manager') => {
+        const response = await fetch(`${API_BASE}${path}`, {
+            ...options,
+            headers: {
+                'Content-Type': 'application/json',
+                role,
+                ...(options.headers || {}),
+            },
+        });
+
+        if (!response.ok) {
+            throw new Error(`Request failed (${response.status})`);
+        }
+
+        const text = await response.text();
+        return text ? JSON.parse(text) : null;
+    };
+
     const stepAccount = document.getElementById('step-account');
     const stepLocation = document.getElementById('step-location');
     const step1Info = document.getElementById('step-1-info');
@@ -133,7 +153,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // Step 1 -> Step 2
-    accountForm.addEventListener('submit', (e) => {
+    accountForm.addEventListener('submit', async (e) => {
         e.preventDefault();
 
         // Check if email already registered
@@ -176,17 +196,24 @@ document.addEventListener('DOMContentLoaded', () => {
                 return;
             }
 
-            let usersList = JSON.parse(localStorage.getItem('dinetime_v3_users_list')) || {};
-            if (usersList[emailVal]) {
-                const errorSpan = document.getElementById('email-error');
-                if (errorSpan) {
-                    errorSpan.style.display = 'block';
-                    emailInput.addEventListener('input', () => {
-                        errorSpan.style.display = 'none';
-                    }, {once: true});
-                } else {
-                    showToast('This email is already registered. Please log in.', 'error', 'ph-warning-circle');
+            try {
+                const usersRes = await apiRequest('/users', {}, 'manager');
+                const users = usersRes?.data || [];
+                const exists = users.some((u) => String(u.email || '').toLowerCase() === emailVal);
+                if (exists) {
+                    const errorSpan = document.getElementById('email-error');
+                    if (errorSpan) {
+                        errorSpan.style.display = 'block';
+                        emailInput.addEventListener('input', () => {
+                            errorSpan.style.display = 'none';
+                        }, { once: true });
+                    } else {
+                        showToast('This email is already registered. Please log in.', 'error', 'ph-warning-circle');
+                    }
+                    return;
                 }
+            } catch (_e) {
+                showToast('Unable to validate email right now. Try again.', 'error', 'ph-warning-circle');
                 return;
             }
         }
@@ -213,7 +240,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // Step 2 -> Dashboard (Final)
-    locationForm.addEventListener('submit', (e) => {
+    locationForm.addEventListener('submit', async (e) => {
         e.preventDefault();
         const submitBtn = locationForm.querySelector('button[type="submit"]');
         const originalText = submitBtn.innerHTML;
@@ -244,11 +271,26 @@ document.addEventListener('DOMContentLoaded', () => {
         const markerLat = marker ? marker.getLatLng().lat : 12.9716;
         const markerLng = marker ? marker.getLatLng().lng : 77.5946;
 
-        // Add user to the main tracking list so they can't register again
-        if (emailVal) {
-            let usersList = JSON.parse(localStorage.getItem('dinetime_v3_users_list')) || {};
-            usersList[emailVal] = { password: passVal }; 
-            localStorage.setItem('dinetime_v3_users_list', JSON.stringify(usersList));
+        let createdUserId = null;
+        try {
+            const created = await apiRequest('/users', {
+                method: 'POST',
+                body: JSON.stringify({
+                    name: nameVal || 'Diner User',
+                    email: emailVal,
+                    phone: phoneVal,
+                    password_hash: passVal || 'password123',
+                    role: 'diner',
+                    status: 'active',
+                    location_id: 'loc_blr_1',
+                }),
+            }, 'manager');
+            createdUserId = created?.data?.id || null;
+        } catch (_e) {
+            showToast('Unable to create account right now.', 'error', 'ph-warning-circle');
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = originalText;
+            return;
         }
 
         // Save into DinetimeStore immediately 
@@ -267,7 +309,8 @@ document.addEventListener('DOMContentLoaded', () => {
             avatar: "../images/avatar-1.jpg",
             joined: "March 2026",
             reviews: 0,
-            photos: 0
+            photos: 0,
+            backend_user_id: createdUserId,
         });
 
         // Wipe all old user-specific data so new user starts fresh
