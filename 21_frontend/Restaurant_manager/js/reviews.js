@@ -1,4 +1,5 @@
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
+    await StorageManager.ready();
     // ---- Toast Helper ----
     const toastContainer = document.getElementById('toast-container');
     window.showToast = function(message, type = 'success') {
@@ -260,3 +261,4 @@ document.addEventListener('DOMContentLoaded', () => {
     // Run
     init();
 });
+

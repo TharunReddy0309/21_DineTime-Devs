@@ -1,4 +1,5 @@
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
+    await StorageManager.ready();
     // ---- Toast System (Duplicated for multi-page simplicity) ----
     const toastContainer = document.getElementById('toast-container');
     window.showToast = function(message, type = 'success') {
@@ -211,6 +212,10 @@ document.addEventListener('DOMContentLoaded', () => {
         const newName = document.getElementById('new-item-name').value;
         const newCat = document.getElementById('new-item-cat').value;
         const newPrice = document.getElementById('new-item-price').value;
+        if (Number(newPrice) > 300) {
+            showToast('Price must be ₹300 or less.', 'error');
+            return;
+        }
         const imgInput = document.getElementById('new-item-img');
         
         const saveItem = (imgData) => {
@@ -285,3 +290,4 @@ document.addEventListener('DOMContentLoaded', () => {
     // Initial render
     renderMenu();
 });
+

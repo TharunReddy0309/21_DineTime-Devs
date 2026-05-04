@@ -2,11 +2,31 @@
    Profile Page — script.js
    ────────────────────────────────────────────────────── */
 
+const API_BASE = (window.DINETIME_CONFIG && window.DINETIME_CONFIG.API_BASE) || 'http://localhost:3000';
+
+async function apiRequest(path, options = {}, role = 'staff') {
+    const response = await fetch(`${API_BASE}${path}`, {
+        ...options,
+        headers: {
+            'Content-Type': 'application/json',
+            role,
+            ...(options.headers || {}),
+        },
+    });
+
+    if (!response.ok) {
+        throw new Error(`Request failed (${response.status})`);
+    }
+
+    const text = await response.text();
+    return text ? JSON.parse(text) : null;
+}
+
 // ─────────────────────────────────────────
 // Auth Guard
 // ─────────────────────────────────────────
 function checkAuth() {
-    const session = localStorage.getItem('dinetime_session');
+    const session = sessionStorage.getItem('dinetime_session');
     if (!session) {
         window.location.href = 'login.html';
         return false;
@@ -40,8 +60,8 @@ editBtn.addEventListener('click', () => {
     }
 });
 
-saveBtn.addEventListener('click', () => {
-    // Persist to localStorage
+saveBtn.addEventListener('click', async () => {
+    // Persist to backend and keep session copy in sync
     const nameInput = document.getElementById('full-name');
     const emailInput = document.getElementById('email');
     const phoneInput = document.getElementById('phone');
@@ -87,20 +107,24 @@ saveBtn.addEventListener('click', () => {
         phone: phone.replace(/\D/g, ''),
     };
 
-    // Sync with Registry (so login details stay updated)
-    const session = JSON.parse(localStorage.getItem('dinetime_session'));
-    const registeredStaffStr = localStorage.getItem('dinetime_registered_staff');
-    if (session && registeredStaffStr) {
-        let registeredStaff = JSON.parse(registeredStaffStr);
-        if (registeredStaff[session.id]) {
-            registeredStaff[session.id].name = data.name;
-            registeredStaff[session.id].email = data.email;
-            registeredStaff[session.id].phone = data.phone;
-            localStorage.setItem('dinetime_registered_staff', JSON.stringify(registeredStaff));
+    try {
+        const session = JSON.parse(sessionStorage.getItem('dinetime_session') || '{}');
+        if (session.staffId) {
+            await apiRequest(`/users/${session.staffId}`, {
+                method: 'PATCH',
+                body: JSON.stringify({
+                    name: data.name,
+                    email: data.email,
+                    phone: data.phone,
+                }),
+            }, 'manager');
         }
-    }
 
-    localStorage.setItem('dinetime_profile', JSON.stringify(data));
+        sessionStorage.setItem('dinetime_profile', JSON.stringify(data));
+    } catch (_e) {
+        showToast('Failed to save profile. Please try again.', 'error');
+        return;
+    }
 
     // Update hero header name immediately
     const heroName = document.querySelector('.hero-name');
@@ -119,14 +143,14 @@ saveBtn.addEventListener('click', () => {
 const profOutBtn = document.getElementById('logout-btn');
 if (profOutBtn) {
     profOutBtn.addEventListener('click', () => {
-        localStorage.removeItem('dinetime_session');
+        sessionStorage.removeItem('dinetime_session');
         window.location.href = 'login.html';
     });
 }
 
 // Load saved profile on page load
 (function loadProfile() {
-    const saved = localStorage.getItem('dinetime_profile');
+    const saved = sessionStorage.getItem('dinetime_profile');
     if (saved) {
         const data = JSON.parse(saved);
         if (data.name) {
@@ -160,42 +184,47 @@ changePwdBtn.addEventListener('click', () => {
         return;
     }
 
-    // --- NEW SECURITY CHECK ---
-    const session = JSON.parse(localStorage.getItem('dinetime_session'));
-    const registeredStaffStr = localStorage.getItem('dinetime_registered_staff');
-    
-    if (session && registeredStaffStr) {
-        let registeredStaff = JSON.parse(registeredStaffStr);
-        const userRecord = registeredStaff[session.id];
-        
-        if (!userRecord || userRecord.password !== current) {
-            pwdError.textContent = 'Current password incorrect. Please try again.';
-            return;
-        }
+    const session = JSON.parse(sessionStorage.getItem('dinetime_session') || '{}');
 
-        // --- VALIDATE NEW PASSWORD ---
-        if (newPwd.length < 8) {
-            pwdError.textContent = 'New password must be at least 8 characters.';
-            return;
-        }
-        if (newPwd !== confirm) {
-            pwdError.textContent = 'New passwords do not match.';
-            return;
-        }
-
-        // --- COMMIT CHANGES TO REGISTRY ---
-        userRecord.password = newPwd;
-        localStorage.setItem('dinetime_registered_staff', JSON.stringify(registeredStaff));
-        
-        // Clear fields and show success
-        document.getElementById('current-password').value = '';
-        document.getElementById('new-password').value     = '';
-        document.getElementById('confirm-password').value = '';
-        pwdSuccess.textContent = 'Password changed successfully!';
-        setTimeout(() => { pwdSuccess.textContent = ''; }, 4000);
-    } else {
+    if (!session || !session.staffId) {
         pwdError.textContent = 'Unable to verify account session.';
+        return;
     }
+
+    // --- VALIDATE NEW PASSWORD ---
+    if (newPwd.length < 8) {
+        pwdError.textContent = 'New password must be at least 8 characters.';
+        return;
+    }
+    if (newPwd !== confirm) {
+        pwdError.textContent = 'New passwords do not match.';
+        return;
+    }
+
+    (async () => {
+        try {
+            const userRes = await apiRequest(`/users/${session.staffId}`, {}, 'manager');
+            const user = userRes?.data;
+
+            if (!user || user.password_hash !== current) {
+                pwdError.textContent = 'Current password incorrect. Please try again.';
+                return;
+            }
+
+            await apiRequest(`/users/${session.staffId}`, {
+                method: 'PATCH',
+                body: JSON.stringify({ password_hash: newPwd }),
+            }, 'manager');
+
+            document.getElementById('current-password').value = '';
+            document.getElementById('new-password').value     = '';
+            document.getElementById('confirm-password').value = '';
+            pwdSuccess.textContent = 'Password changed successfully!';
+            setTimeout(() => { pwdSuccess.textContent = ''; }, 4000);
+        } catch (_e) {
+            pwdError.textContent = 'Unable to change password right now.';
+        }
+    })();
 });
 
 
@@ -207,11 +236,11 @@ const notifKeys = ['notif-email', 'notif-sms', 'notif-daily', 'notif-manager'];
 notifKeys.forEach(key => {
     const el = document.getElementById(key);
     // Load saved state
-    const saved = localStorage.getItem(key);
+    const saved = sessionStorage.getItem(key);
     if (saved !== null) el.checked = saved === 'true';
 
     el.addEventListener('change', () => {
-        localStorage.setItem(key, el.checked);
+        sessionStorage.setItem(key, el.checked);
     });
 });
 

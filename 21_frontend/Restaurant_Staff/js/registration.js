@@ -1,4 +1,66 @@
 // Toggle password visibility for multiple fields
+const API_BASE = (window.DINETIME_CONFIG && window.DINETIME_CONFIG.API_BASE) || 'http://localhost:3000';
+
+async function apiRequest(path, options = {}, role = 'staff') {
+    const response = await fetch(`${API_BASE}${path}`, {
+        ...options,
+        headers: {
+            'Content-Type': 'application/json',
+            role,
+            ...(options.headers || {}),
+        },
+    });
+
+    if (!response.ok) {
+        throw new Error(`Request failed (${response.status})`);
+    }
+
+    const text = await response.text();
+    return text ? JSON.parse(text) : null;
+}
+
+function normalizeKey(value) {
+    return String(value || '').trim().toLowerCase().replace(/[^a-z0-9]/g, '');
+}
+
+function resolveRestaurant(restaurants, inputValue) {
+    const input = String(inputValue || '').trim();
+    const normalizedInput = normalizeKey(input);
+
+    if (!normalizedInput) return null;
+
+    const direct = (restaurants || []).find((restaurant) =>
+        normalizeKey(restaurant.id) === normalizedInput ||
+        normalizeKey(restaurant.name) === normalizedInput,
+    );
+    if (direct) return direct;
+
+    // Backward-compatible aliases used in older UI versions.
+    const legacyAliasToName = {
+        restaurantseed1: 'spicegarden',
+        restaurantseed2: 'bellaitalia',
+        restaurantseed3: 'dragonbowl',
+        restaurantseed4: 'sakurahouse',
+        res1001: 'spicegarden',
+    };
+
+    const aliasName = legacyAliasToName[normalizedInput];
+    if (aliasName) {
+        const byAlias = (restaurants || []).find((restaurant) => normalizeKey(restaurant.name) === aliasName);
+        if (byAlias) return byAlias;
+    }
+
+    const seedMatch = normalizedInput.match(/restaurantseed(\d+)$/);
+    if (seedMatch) {
+        const index = Number(seedMatch[1]) - 1;
+        if (index >= 0 && index < (restaurants || []).length) {
+            return restaurants[index];
+        }
+    }
+
+    return null;
+}
+
 const toggleIcons = document.querySelectorAll('.toggle-password');
 toggleIcons.forEach(icon => {
     icon.addEventListener('click', function() {
@@ -18,7 +80,7 @@ toggleIcons.forEach(icon => {
 });
 
 // Registration Form Submission
-document.getElementById('registerForm').addEventListener('submit', function(e) {
+document.getElementById('registerForm').addEventListener('submit', async function(e) {
     e.preventDefault();
 
     const fullName = document.getElementById('full-name').value.trim();
@@ -59,20 +121,7 @@ document.getElementById('registerForm').addEventListener('submit', function(e) {
     }
 
     // Known Restaurant ID map
-    const RESTAURANT_ID_MAP = {
-        'RES-1001': { name: 'Spice Garden',  managerEmail: 'rahul.sharma@spicegarden.com' },
-        'RES-2001': { name: 'Sushi Master',  managerEmail: 'manager@sushimaster.com' },
-        'RES-3001': { name: 'Burger Joint',  managerEmail: null },
-        'RES-4001': { name: 'Le Gourmet',    managerEmail: null },
-        'RES-5001': { name: 'Taco Fiesta',   managerEmail: null }
-    };
 
-    const restIdUpper = restId.toUpperCase();
-    if (!RESTAURANT_ID_MAP[restIdUpper]) {
-        errorMsg.textContent = 'Invalid Restaurant ID. Valid IDs: RES-1001 (Spice Garden), RES-2001 (Sushi Master).';
-        errorMsg.style.display = 'block';
-        return;
-    }
 
     if (!/^\d{6}$/.test(pincode)) {
         errorMsg.textContent = 'Pincode must be exactly 6 digits.';
@@ -86,93 +135,52 @@ document.getElementById('registerForm').addEventListener('submit', function(e) {
         return;
     }
 
-    // Check if email already registered
-    let registeredStaff = JSON.parse(localStorage.getItem('dinetime_registered_staff')) || {};
-    if (registeredStaff[email]) {
-        const emailErrorSpan = document.getElementById('email-error');
-        if (emailErrorSpan) {
-            emailErrorSpan.style.display = 'block';
-            document.getElementById('email').addEventListener('input', () => {
-                emailErrorSpan.style.display = 'none';
-            }, {once: true});
-        } else {
-            errorMsg.textContent = 'This email is already registered.';
-            errorMsg.style.display = 'block';
-        }
-        return;
-    }
-
-    // Simulate Server Request
     const submitBtn = document.querySelector('.btn-primary');
+    const originalText = submitBtn.textContent;
     submitBtn.textContent = 'Submitting Request...';
     submitBtn.disabled = true;
 
-    setTimeout(() => {
-        const restIdUpper = restId.toUpperCase();
-        const RESTAURANT_ID_MAP = {
-            'RES-1001': { name: 'Spice Garden',  managerEmail: 'rahul.sharma@spicegarden.com' },
-            'RES-2001': { name: 'Sushi Master',  managerEmail: 'manager@sushimaster.com' },
-            'RES-3001': { name: 'Burger Joint',  managerEmail: null },
-            'RES-4001': { name: 'Le Gourmet',    managerEmail: null },
-            'RES-5001': { name: 'Taco Fiesta',   managerEmail: null }
-        };
-        const restInfo = RESTAURANT_ID_MAP[restIdUpper];
-        const restaurantName = restInfo ? restInfo.name : 'Unknown';
-        const managerEmail   = restInfo ? restInfo.managerEmail : null;
+    try {
+        const [restaurantsRes, usersRes] = await Promise.all([
+            apiRequest('/restaurants', {}, 'staff'),
+            apiRequest('/users', {}, 'manager'),
+        ]);
 
-        // Store pending state for the UI
-        const pendingRequest = {
-            name: fullName,
-            email: email,
-            status: 'pending',
-            timestamp: new Date().toISOString()
-        };
-        localStorage.setItem('dinetime_pending_request', JSON.stringify(pendingRequest));
-        
-        // Save staff as Pending in dinetime_registered_staff
-        let registeredStaff = JSON.parse(localStorage.getItem('dinetime_registered_staff')) || {};
-        registeredStaff[email] = {
-            name: fullName,
-            email: email,
-            phone: phone,
-            restId: restIdUpper,
-            restaurant: restaurantName,
-            pincode: pincode,
-            password: password,
-            role: 'Staff',
-            status: 'Pending'   // Blocked until manager approves
-        };
-        localStorage.setItem('dinetime_registered_staff', JSON.stringify(registeredStaff));
+        const restaurants = restaurantsRes?.data || [];
+        const users = usersRes?.data || [];
 
-        // Route the pending request to the correct manager's staff list in dinetimeData_v2
-        if (managerEmail) {
-            try {
-                let managerData = JSON.parse(localStorage.getItem('dinetimeData_v2'));
-                if (managerData && managerData.users && managerData.users[managerEmail]) {
-                    const mgr = managerData.users[managerEmail];
-                    if (!mgr.staff) mgr.staff = [];
-                    // Avoid duplicates
-                    const alreadyExists = mgr.staff.find(s => s.email === email);
-                    if (!alreadyExists) {
-                        const initials = fullName.split(' ').map(p => p[0]).join('').toUpperCase().slice(0, 2);
-                        mgr.staff.push({
-                            id: 'ST-' + Date.now(),
-                            name: fullName,
-                            initials: initials,
-                            role: 'Staff',
-                            email: email,
-                            phone: phone,
-                            status: 'Pending',
-                            requestedOn: new Date().toLocaleDateString('en-IN')
-                        });
-                        localStorage.setItem('dinetimeData_v2', JSON.stringify(managerData));
-                    }
-                }
-            } catch(e) { console.error('Failed to route staff request to manager:', e); }
+        const restaurant = resolveRestaurant(restaurants, restId);
+
+        if (!restaurant) {
+            throw new Error('Restaurant not found. Use a valid Restaurant ID or exact restaurant name.');
         }
-        
-        // Redirect to Request Status Page
+
+        const existing = users.find((u) => u.email.toLowerCase() === email.toLowerCase());
+        if (existing) {
+            throw new Error('This email is already registered.');
+        }
+
+        await apiRequest('/users', {
+            method: 'POST',
+            body: JSON.stringify({
+                name: fullName,
+                email,
+                phone,
+                password_hash: password,
+                role: 'staff',
+                status: 'inactive',
+                location_id: 'loc_blr_1',
+                restaurant_id: restaurant.id,
+                employee_code: `EMP-${Date.now().toString().slice(-6)}`,
+                role_type: 'service',
+            }),
+        }, 'manager');
+
         window.location.href = 'request.html';
-        
-    }, 1000);
+    } catch (error) {
+        errorMsg.textContent = error.message || 'Unable to submit request.';
+        errorMsg.style.display = 'block';
+        submitBtn.textContent = originalText;
+        submitBtn.disabled = false;
+    }
 });

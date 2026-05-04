@@ -1,789 +1,1343 @@
-/* =========================================================
-   js/modules/super-admin.js
-   Local Storage Persistent Logic + Domain Dictionary
-   Version: V5 (Auto-resets cache to apply ID additions & 30 Restaurants)
-   ========================================================= */
-
-const TITLES = {
-    dashboard: ['Global Dashboard', 'Real-time platform health and metrics.'],
-    restaurants: ['Restaurant Management', 'Onboard, verify, and control network nodes.'],
-    users: ['User Management', 'Global database of Diners, Restaurant Managers, and Restaurant Staff.'],
-    reservations: ['Reservations', 'Track bookings, customer check-ins, and no-shows globally.'],
-    payments: ['Payments', 'Platform-wide transaction oversight.'],
-    reports: ['Reports & Analytics', 'Platform performance, operational hours, and dining insights.'],
-    notifications: ['Broadcast Center', 'Send platform-wide alerts.'],
-    audit: ['System Audit Logs', 'Complete trace of system actions.']
+const API_BASE = (window.DINETIME_CONFIG && window.DINETIME_CONFIG.API_BASE) || 'http://localhost:3000';
+const API_ROLE = 'super_user';
+const STORAGE_KEYS = {
+  activeTab: 'dt_active_tab_v6',
 };
 
-// INITIAL DATA ARRAYS (Expanded to 10 Restaurants for brevity here, matches your provided code)
-const INIT_RESTAURANTS = [
-    { id: "RES-1001", name: "Spice Garden", cuisine: "North Indian", tables: 20, address: "123 Main St", city: "Bangalore", pincode: "560001", managerName: "Rahul Sharma", managerEmail: "admin@spice.com", license: "12345678901234", timeSlots: "10 AM - 10 PM", status: "Verified", activeReservations: 2, lastActive: "2 mins ago" },
-    { id: "RES-1002", name: "The Velvet Fork", cuisine: "Continental", tables: 15, address: "45 West Ave", city: "Mumbai", pincode: "400001", managerName: "Sarah Jenkins", managerEmail: "sarah@velvet.in", license: "99245678901234", timeSlots: "11 AM - 11 PM", status: "Suspended", activeReservations: 0, lastActive: "3 days ago" },
-    { id: "RES-1003", name: "Sushi Central", cuisine: "Japanese", tables: 12, address: "Link Road", city: "Mumbai", pincode: "400050", managerName: "Kenji Sato", managerEmail: "kenji@sushi.in", license: "44545678901234", timeSlots: "12 PM - 10 PM", status: "Verified", activeReservations: 2, lastActive: "Just now" },
-    { id: "RES-1004", name: "Tuscan Villa", cuisine: "Italian", tables: 25, address: "UB City", city: "Bangalore", pincode: "560001", managerName: "Marco Rossi", managerEmail: "marco@tuscan.com", license: "77845678901234", timeSlots: "10 AM - 11 PM", status: "Verified", activeReservations: 2, lastActive: "5 mins ago" },
-    { id: "RES-1005", name: "Delhi Darbar", cuisine: "Mughlai", tables: 30, address: "Connaught", city: "Delhi", pincode: "110001", managerName: "Amit Khan", managerEmail: "amit@darbar.com", license: "11245678901234", timeSlots: "11 AM - 12 AM", status: "Pending", activeReservations: 1, lastActive: "1 hour ago" },
-    { id: "RES-1006", name: "Burger Joint", cuisine: "Fast Food", tables: 10, address: "Bandra West", city: "Mumbai", pincode: "400050", managerName: "Priya Patel", managerEmail: "priya@burger.in", license: "33445678901234", timeSlots: "10 AM - 11 PM", status: "Verified", activeReservations: 1, lastActive: "10 mins ago" },
-    { id: "RES-1007", name: "Vegan Bites", cuisine: "Healthy", tables: 18, address: "Indiranagar", city: "Bangalore", pincode: "560038", managerName: "John Doe", managerEmail: "john@vegan.com", license: "55645678901234", timeSlots: "9 AM - 9 PM", status: "Verified", activeReservations: 2, lastActive: "Just now" },
-    { id: "RES-1008", name: "Dimsum House", cuisine: "Chinese", tables: 14, address: "Powai", city: "Mumbai", pincode: "400076", managerName: "Li Wei", managerEmail: "li@dimsum.in", license: "88945678901234", timeSlots: "11 AM - 11 PM", status: "Verified", activeReservations: 1, lastActive: "20 mins ago" },
-    { id: "RES-1009", name: "Southern Spice", cuisine: "South Indian", tables: 22, address: "T Nagar", city: "Chennai", pincode: "600017", managerName: "Karthik Raj", managerEmail: "karthik@southern.in", license: "22145678901234", timeSlots: "7 AM - 10 PM", status: "Verified", activeReservations: 2, lastActive: "1 min ago" },
-    { id: "RES-1010", name: "Hyderabad House", cuisine: "Biryani", tables: 28, address: "Jubilee Hills", city: "Hyderabad", pincode: "500033", managerName: "Syed Ali", managerEmail: "syed@hydhouse.com", license: "66345678901234", timeSlots: "12 PM - 12 AM", status: "Verified", activeReservations: 2, lastActive: "Just now" }
-];
 
-const INIT_USERS = [
-    { id: "USR-001", name: "Rahul Sharma", email: "admin@spice.com", role: "Restaurant Manager", node: "Spice Garden", status: "Active" },
-    { id: "USR-002", name: "Sarah Jenkins", email: "sarah@velvet.in", role: "Restaurant Manager", node: "The Velvet Fork", status: "Suspended" },
-    { id: "USR-007", name: "Ravi Kumar", email: "ravi.staff@spice.com", role: "Restaurant Staff", node: "Spice Garden", status: "Active" },
-    { id: "USR-008", name: "Anita Desai", email: "anita.staff@tuscan.com", role: "Restaurant Staff", node: "Tuscan Villa", status: "Active" },
-    { id: "USR-012", name: "Neha Gupta", email: "neha.diner@gmail.com", role: "Diner", node: "N/A", status: "Active" },
-    { id: "USR-014", name: "Pooja Reddy", email: "pooja.r@hotmail.com", role: "Diner", node: "N/A", status: "Suspended" },
-    { id: "USR-015", name: "Aditya Verma", email: "aditya.v@gmail.com", role: "Diner", node: "N/A", status: "Active" },
-    { id: "USR-016", name: "Fatima Noor", email: "fatima@nawabi.com", role: "Restaurant Manager", node: "Nawabi Feast", status: "Active" },
-    { id: "USR-017", name: "Karan Desai", email: "karan@oceanview.in", role: "Restaurant Manager", node: "Ocean View", status: "Active" }
-];
 
-const INIT_RESERVATIONS = [
-    { id: "BKG-88421", dinerName: "Neha Gupta", dinerId: "USR-012", restaurantName: "Spice Garden", restaurantId: "RES-1001", date: "2026-03-30", time: "19:30", party: 4, status: "Booking" },
-    { id: "BKG-88419", dinerName: "Aditya Verma", dinerId: "USR-015", restaurantName: "Tuscan Villa", restaurantId: "RES-1004", date: "2026-03-30", time: "20:00", party: 2, status: "Customer Check-In" },
-    { id: "BKG-88407", dinerName: "Pooja Reddy", dinerId: "USR-014", restaurantName: "Delhi Darbar", restaurantId: "RES-1005", date: "2026-03-31", time: "18:00", party: 6, status: "No-Show" },
-    { id: "BKG-88390", dinerName: "Karan Desai", dinerId: "USR-017", restaurantName: "Sushi Central", restaurantId: "RES-1003", date: "2026-03-30", time: "13:00", party: 3, status: "Booking" },
-    { id: "BKG-88385", dinerName: "Amit Khan", dinerId: "USR-005", restaurantName: "Ocean View", restaurantId: "RES-1011", date: "2026-03-31", time: "20:30", party: 2, status: "Customer Check-In" }
-];
-
-const INIT_PAYMENTS = [
-    { id: "TRANSACTION-9928401", user: "Neha Gupta", userId: "USR-012", restaurant: "Spice Garden", restaurantId: "RES-1001", amount: "₹500", method: "UPI", status: "Success" },
-    { id: "TRANSACTION-9928389", user: "Aditya Verma", userId: "USR-015", restaurant: "Tuscan Villa", restaurantId: "RES-1004", amount: "₹1,000", method: "Card", status: "Success" },
-    { id: "TRANSACTION-9928301", user: "Pooja Reddy", userId: "USR-014", restaurant: "Delhi Darbar", restaurantId: "RES-1005", amount: "₹300", method: "Netbanking", status: "Failed" },
-    { id: "TRANSACTION-9928210", user: "Karan Desai", userId: "USR-017", restaurant: "Sushi Central", restaurantId: "RES-1003", amount: "₹300", method: "UPI", status: "Refunded" }
-];
-
-const INIT_AUDIT = [
-    { time: "14:32:18", message: "Super Admin approved Restaurant <code style='background:#f0f0f0;padding:2px 4px;border-radius:4px;color:#333;font-size:0.8rem;'>Spice Garden</code>" },
-    { time: "13:51:04", message: "User <code style='background:#f0f0f0;padding:2px 4px;border-radius:4px;color:#333;font-size:0.8rem;'>pooja.r@hotmail.com</code> suspended for policy violation" },
-    { time: "10:30:15", message: "Payment Gateway settings updated globally" },
-    { time: "09:15:00", message: "Broadcast notification sent to all Diners" }
-];
-
-// INITIALIZATION (Using v5 keys)
-window.onload = function() {
-    if(!localStorage.getItem('dt_admin_res_v5')) localStorage.setItem('dt_admin_res_v5', JSON.stringify(INIT_RESTAURANTS));
-    if(!localStorage.getItem('dt_admin_usr_v5')) localStorage.setItem('dt_admin_usr_v5', JSON.stringify(INIT_USERS));
-    if(!localStorage.getItem('dt_admin_bkg_v5')) localStorage.setItem('dt_admin_bkg_v5', JSON.stringify(INIT_RESERVATIONS));
-    if(!localStorage.getItem('dt_admin_pay_v5')) localStorage.setItem('dt_admin_pay_v5', JSON.stringify(INIT_PAYMENTS));
-    if(!localStorage.getItem('dt_admin_log_v5')) localStorage.setItem('dt_admin_log_v5', JSON.stringify(INIT_AUDIT));
-    
-    // Seed Auth Defaults
-    if(!localStorage.getItem('admin_email')) localStorage.setItem('admin_email', 'admin@dinetime.com');
-    if(!localStorage.getItem('admin_password')) localStorage.setItem('admin_password', 'admin123');
-
-    var savedTab = localStorage.getItem('dt_active_tab_v5') || 'dashboard';
-    switchTab(savedTab);
-
-    renderGlobalTable();
-    renderUsersTable();
-    renderReservationsTable();
-    renderPaymentsTable();
-    renderAuditLogs();
-    generateReport();
-
-    // Setup Restaurant Form
-    var superForm = document.getElementById('superForm');
-    if(superForm) {
-        superForm.onsubmit = function(event) {
-            event.preventDefault(); 
-            
-            // STRICT JS VALIDATIONS (As fallback to HTML5 Pattern Validation)
-            const pincodeVal = document.getElementById('resPincode').value;
-            if (!/^\d{6}$/.test(pincodeVal)) {
-                showToast("Pincode must be exactly 6 digits.", "error");
-                return;
-            }
-
-            const emailVal = document.getElementById('resManagerEmail').value;
-            if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailVal)) {
-                showToast("Invalid manager email format.", "error");
-                return;
-            }
-
-            const fssaiVal = document.getElementById('resLicense').value;
-            if (!/^\d{14}$/.test(fssaiVal)) {
-                showToast("FSSAI License must be exactly 14 digits.", "error");
-                return;
-            }
-            
-            var saveBtn = document.getElementById('saveNodeBtn');
-            saveBtn.innerHTML = "Processing...";
-
-            setTimeout(function() {
-                var newRes = {
-                    name: document.getElementById('resName').value,
-                    cuisine: document.getElementById('resCuisine').value,
-                    tables: parseInt(document.getElementById('resTables').value),
-                    address: document.getElementById('resAddress').value,
-                    city: document.getElementById('resCity').value,
-                    pincode: pincodeVal,
-                    managerName: document.getElementById('resManagerName').value,
-                    managerEmail: emailVal,
-                    license: fssaiVal,
-                    timeSlots: document.getElementById('resTimeSlots').value,
-                    status: document.getElementById('resStatus').value,
-                    activeReservations: 0, 
-                    lastActive: "Just now"
-                };
-
-                var editingId = document.getElementById('resId').value;
-                var isNew = true;
-                let resData = JSON.parse(localStorage.getItem('dt_admin_res_v5'));
-
-                if (editingId !== "") {
-                    for (var i = 0; i < resData.length; i++) {
-                        if (resData[i].id === editingId) {
-                            newRes.id = editingId;
-                            newRes.activeReservations = resData[i].activeReservations;
-                            resData[i] = newRes; 
-                            isNew = false; break;
-                        }
-                    }
-                } else {
-                    newRes.id = "RES-" + Math.floor(Math.random() * 9000 + 1000);
-                    resData.push(newRes); 
-                }
-
-                localStorage.setItem('dt_admin_res_v5', JSON.stringify(resData));
-                closeRestaurantModal();
-                renderGlobalTable();
-                saveBtn.innerHTML = "Save Restaurant";
-                showToast(isNew ? "Restaurant added to platform." : "Restaurant updated.", "success");
-                addAuditLog(isNew ? "Created new restaurant " + newRes.name : "Modified restaurant " + newRes.name);
-            }, 400);
-        };
-    }
-
-    // Setup User Form
-    var userForm = document.getElementById('userForm');
-    if(userForm) {
-        userForm.onsubmit = function(event) {
-            event.preventDefault();
-            
-            // STRICT JS EMAIL VALIDATION
-            const userEmailVal = document.getElementById('userEmail').value;
-            if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(userEmailVal)) {
-                showToast("Invalid user email format.", "error");
-                return;
-            }
-            
-            var newUser = {
-                name: document.getElementById('userName').value,
-                email: userEmailVal,
-                role: document.getElementById('userRole').value,
-                node: document.getElementById('userRole').value === 'Diner' ? 'N/A' : document.getElementById('userNode').value,
-                status: document.getElementById('userStatus').value
-            };
-
-            var editingId = document.getElementById('userId').value;
-            let usrData = JSON.parse(localStorage.getItem('dt_admin_usr_v5'));
-            var isNew = true;
-
-            if (editingId !== "") {
-                for (var i = 0; i < usrData.length; i++) {
-                    if (usrData[i].id === editingId) {
-                        newUser.id = editingId;
-                        usrData[i] = newUser; 
-                        isNew = false; break;
-                    }
-                }
-            } else {
-                newUser.id = "USR-" + Math.floor(Math.random() * 900 + 100);
-                usrData.push(newUser); 
-            }
-
-            localStorage.setItem('dt_admin_usr_v5', JSON.stringify(usrData));
-            closeUserModal();
-            renderUsersTable();
-            showToast(isNew ? "User added successfully." : "User details updated.", "success");
-            addAuditLog(isNew ? "Created new user account for " + newUser.email : "Modified user account " + newUser.email);
-        };
-    }
-
-    // Setup Reservation Form
-    var reservationForm = document.getElementById('reservationForm');
-    if(reservationForm) {
-        reservationForm.onsubmit = function(event) {
-            event.preventDefault();
-            
-            var resSelect = document.getElementById('bkgRestaurant');
-            var selectedResName = resSelect.options[resSelect.selectedIndex].text;
-            var selectedResId = resSelect.value; 
-
-            var newBkg = {
-                dinerName: document.getElementById('bkgDinerName').value,
-                dinerId: document.getElementById('bkgDinerId').value || "GUEST",
-                restaurantName: selectedResName,
-                restaurantId: selectedResId,
-                date: document.getElementById('bkgDate').value,
-                time: document.getElementById('bkgTime').value,
-                party: parseInt(document.getElementById('bkgParty').value),
-                status: document.getElementById('bkgStatus').value
-            };
-
-            var editingId = document.getElementById('bkgId').value;
-            let bkgData = JSON.parse(localStorage.getItem('dt_admin_bkg_v5')) || [];
-            var isNew = true;
-
-            if (editingId !== "") {
-                for (var i = 0; i < bkgData.length; i++) {
-                    if (bkgData[i].id === editingId) {
-                        newBkg.id = editingId;
-                        bkgData[i] = newBkg; 
-                        isNew = false; break;
-                    }
-                }
-            } else {
-                newBkg.id = "BKG-" + Math.floor(Math.random() * 90000 + 10000);
-                bkgData.push(newBkg); 
-            }
-
-            localStorage.setItem('dt_admin_bkg_v5', JSON.stringify(bkgData));
-            closeReservationModal();
-            renderReservationsTable();
-            updateAllKPIs(); 
-            showToast(isNew ? "Reservation added successfully." : "Reservation updated.", "success");
-            addAuditLog(isNew ? "Created reservation for " + newBkg.dinerName : "Modified reservation " + newBkg.id);
-        };
-    }
+const ROLE_LABELS = {
+  diner: 'Diner',
+  manager: 'Restaurant Manager',
+  staff: 'Restaurant Staff',
+  super_user: 'Super User',
 };
 
-// --- KPI MASTER SYNC ---
-window.updateAllKPIs = function() {
-    let resData = JSON.parse(localStorage.getItem('dt_admin_res_v5')) || [];
-    let usrData = JSON.parse(localStorage.getItem('dt_admin_usr_v5')) || [];
+const ROLE_VALUES = {
+  Diner: 'diner',
+  'Restaurant Manager': 'manager',
+  'Restaurant Staff': 'staff',
+};
 
-    var totalTables = 0, totalResvs = 0, pendingApps = 0;
+const state = {
+  restaurants: [],
+  users: [],
+  reservations: [],
+  payments: [],
+  notifications: [],
+  tables: [],
+  timeslots: [],
+  tableSlots: [],
+  locations: {},
+  auditLog: [],
+  refreshTimer: null,
+};
 
-    for (var i = 0; i < resData.length; i++) {
-        totalTables += parseInt(resData[i].tables || 0);
-        totalResvs += parseInt(resData[i].activeReservations || 0);
-        if(resData[i].status === 'Pending') pendingApps++;
-    }
-    for (var j = 0; j < usrData.length; j++) {
-        if(usrData[j].status === 'Pending') pendingApps++;
-    }
-
-    var totalRev = totalResvs * 850;
-    var totalSeats = totalTables * 4; 
-
-    var dBook = document.getElementById('dashTotalBookings');
-    var dUsr = document.getElementById('dashTotalUsers');
-    var dRes = document.getElementById('dashTotalRes');
-    var dRev = document.getElementById('dashTotalRev');
-    var dPend = document.getElementById('dashPendingApps');
-
-    if(dBook) dBook.innerHTML = totalResvs.toLocaleString();
-    if(dUsr) dUsr.innerHTML = (usrData.length + 31).toLocaleString(); 
-    if(dRes) dRes.innerHTML = resData.length;
-    if(dRev) dRev.innerHTML = "₹" + totalRev.toLocaleString('en-IN');
-    if(dPend) dPend.innerHTML = pendingApps;
-
-    var rRes = document.getElementById('resTabTotalRes');
-    var rBook = document.getElementById('resTabActiveBooks');
-    var rTab = document.getElementById('resTabTotalCapacity');
-
-    if(rRes) rRes.innerHTML = resData.length;
-    if(rBook) rBook.innerHTML = totalResvs;
-    if(rTab) rTab.innerHTML = totalSeats + " <span style='font-size: 1rem; color: #666; font-weight: 500;'>seats</span>";
+function escapeHtml(value) {
+  return String(value ?? '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
 }
 
-// --- RESTAURANTS CRUD & SEARCH ---
-window.renderGlobalTable = function() {
-    var tableBody = document.getElementById('globalRestaurantsBody');
-    if (!tableBody) return;
-    
-    let resData = JSON.parse(localStorage.getItem('dt_admin_res_v5'));
-    updateAllKPIs(); 
-    
-    var searchQuery = document.getElementById('resDirectorySearch') ? document.getElementById('resDirectorySearch').value.toLowerCase() : '';
-    var statusFilter = document.getElementById('resStatusFilter') ? document.getElementById('resStatusFilter').value : '';
-    
-    var filteredRes = resData.filter(function(r) {
-        var matchesSearch = searchQuery === '' || r.name.toLowerCase().includes(searchQuery) || 
-               r.city.toLowerCase().includes(searchQuery) || 
-               r.id.toLowerCase().includes(searchQuery);
-        var matchesStatus = statusFilter === '' || r.status === statusFilter;
-        return matchesSearch && matchesStatus;
-    });
-
-    tableBody.innerHTML = ""; 
-    
-    for (var i = 0; i < filteredRes.length; i++) {
-        var res = filteredRes[i];
-        var isVerified = (res.status === 'Verified');
-        var statusColor = isVerified ? "#2E7D32" : (res.status === 'Pending' ? "#E65100" : "#C62828");
-
-        var row = document.createElement('tr');
-        row.innerHTML = 
-            "<td><div style='font-weight: 800; font-size: 0.95rem; color: var(--text-dark);'>" + res.name + "</div><div style='font-size: 0.75rem; color: #666; margin-top: 4px;'><code style='background: #f0f0f0; padding: 2px 4px; border-radius: 4px;'>" + res.id + "</code> • " + res.city + "</div></td>" +
-            "<td><div style='font-weight: 600; color: #1976D2;'>" + res.activeReservations + " Bookings</div><div style='font-size: 0.75rem; color: #888; margin-top: 4px;'>Capacity: " + (res.tables * 4) + " seats<br>Time Slots: " + res.timeSlots + "</div></td>" +
-            "<td><div style='font-weight: 600;'>" + res.managerName + "</div><div style='font-size: 0.75rem; color: #666; margin-top: 4px;'>" + res.managerEmail + "</div></td>" +
-            "<td><div style='font-weight: 700; color: " + statusColor + "; display: flex; align-items: center; gap: 6px;'><i class='fa-solid fa-circle' style='font-size: 0.5rem;'></i> " + res.status + "</div></td>" +
-            "<td style='text-align: right; vertical-align: middle;'>" +
-                "<div style='display: flex; justify-content: flex-end; align-items: center; gap: 0.5rem;'>" +
-                    "<button class='btn-outline btn-sm' style='color: #E67E22; border-color: #E67E22; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; padding: 0;' onclick='editRes(\"" + res.id + "\")' title='View / Edit'><i class='fa-solid fa-eye'></i></button>" +
-                    "<button class='btn-outline btn-sm' style='color: #C62828; border-color: #ffcdd2; background: #FFEBEE; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; padding: 0;' onclick='deleteRes(\"" + res.id + "\", \"" + res.name.replace(/"/g, '&quot;') + "\")' title='Remove Node'><i class='fa-solid fa-trash'></i></button>" +
-                "</div>" +
-            "</td>";
-        tableBody.appendChild(row);
-    }
+function readJson(key, fallback) {
+  try {
+    const raw = sessionStorage.getItem(key);
+    return raw ? JSON.parse(raw) : fallback;
+  } catch (_error) {
+    return fallback;
+  }
 }
 
-window.openRestaurantModal = function() {
-    document.getElementById('superForm').reset();
-    document.getElementById('resId').value = "";
-    document.getElementById('superModalTitle').innerHTML = "Add Restaurant";
-    document.getElementById('superModal').style.display = "flex";
+function writeJson(key, value) {
+  sessionStorage.setItem(key, JSON.stringify(value));
 }
-window.closeRestaurantModal = function() { document.getElementById('superModal').style.display = "none"; }
 
-window.editRes = function(id) {
-    let resData = JSON.parse(localStorage.getItem('dt_admin_res_v5'));
-    var target = resData.find(r => r.id === id);
-    if (target) {
-        document.getElementById('resId').value = target.id;
-        document.getElementById('resName').value = target.name;
-        document.getElementById('resCuisine').value = target.cuisine;
-        document.getElementById('resTables').value = target.tables;
-        document.getElementById('resAddress').value = target.address;
-        document.getElementById('resCity').value = target.city;
-        document.getElementById('resPincode').value = target.pincode;
-        document.getElementById('resManagerName').value = target.managerName;
-        document.getElementById('resManagerEmail').value = target.managerEmail;
-        document.getElementById('resLicense').value = target.license;
-        document.getElementById('resTimeSlots').value = target.timeSlots || "10 AM - 10 PM";
-        document.getElementById('resStatus').value = target.status;
-        document.getElementById('superModalTitle').innerHTML = "View / Edit Restaurant";
-        document.getElementById('superModal').style.display = "flex";
+function getAuditLog() {
+  return state.auditLog;
+}
+
+function addAuditLog(message) {
+  state.auditLog.push({
+    time: new Date().toLocaleTimeString('en-GB'),
+    message,
+  });
+  renderAuditLogs();
+}
+
+async function apiRequest(path, options = {}) {
+  const response = await fetch(`${API_BASE}${path}`, {
+    ...options,
+    headers: {
+      'Content-Type': 'application/json',
+      role: API_ROLE,
+      ...(options.headers || {}),
+    },
+  });
+
+  if (!response.ok) {
+    let message = `Request failed (${response.status})`;
+    try {
+      const body = await response.json();
+      message = Array.isArray(body.message) ? body.message.join(', ') : (body.message || message);
+    } catch (_error) {
     }
+    throw new Error(message);
+  }
+
+  const text = await response.text();
+  return text ? JSON.parse(text) : null;
+}
+
+function formatCurrency(amount) {
+  return `INR ${Number(amount || 0).toLocaleString('en-IN')}`;
+}
+
+function mapRestaurantStatus(status) {
+  return status === 'active' ? 'Verified' : 'Pending';
+}
+
+function mapUserStatus(status) {
+  return status === 'active' ? 'Active' : 'Suspended';
+}
+
+function mapPaymentStatus(status) {
+  if (status === 'paid') return 'Success';
+  if (status === 'failed') return 'Failed';
+  return 'Pending';
+}
+
+function mapReservationStatus(status) {
+  if (status === 'checked_in') return 'Customer Check-In';
+  if (status === 'cancelled' || status === 'no_show') return 'No-Show';
+  if (status === 'completed') return 'Completed';
+  return 'Booking';
+}
+
+function toBackendReservationStatus(label) {
+  if (label === 'Customer Check-In') return 'checked_in';
+  if (label === 'No-Show') return 'no_show';
+  if (label === 'Completed') return 'completed';
+  return 'reserved';
+}
+
+function toBackendAccountStatus(label) {
+  return label === 'Active' ? 'active' : 'inactive';
+}
+
+function roleLabel(role) {
+  return ROLE_LABELS[role] || role;
+}
+
+function locationForRestaurant(restaurant) {
+  return state.locations[restaurant.location_id] || null;
+}
+
+function restaurantsById() {
+  return Object.fromEntries(state.restaurants.map((restaurant) => [restaurant.id, restaurant]));
+}
+
+function usersById() {
+  return Object.fromEntries(state.users.map((user) => [user.id, user]));
+}
+
+function getRestaurantDisplay(restaurant) {
+  const manager = state.users.find((user) => user.id === restaurant.manager_id);
+  const location = locationForRestaurant(restaurant);
+  const tables = state.tables.filter((table) => table.restaurant_id === restaurant.id);
+  const reservations = state.reservations.filter((reservation) => reservation.restaurant_id === restaurant.id);
+  const slots = state.timeslots
+    .filter((slot) => slot.restaurant_id === restaurant.id)
+    .sort((a, b) => String(a.start_time).localeCompare(String(b.start_time)));
+
+  const timeSlots = Array.from(
+    new Set(slots.map((slot) => `${String(slot.start_time).slice(0, 5)}-${String(slot.end_time).slice(0, 5)}`)),
+  ).slice(0, 3).join(', ');
+
+  return {
+    id: restaurant.id,
+    name: restaurant.name,
+    cuisine: restaurant.cuisine_type,
+    tables: tables.length || Number(restaurant.total_tables) || 0,
+    address: location?.address || 'Address not set',
+    city: location?.city || 'Unknown',
+    pincode: location?.pincode || '',
+    managerName: manager?.name || 'Unassigned',
+    managerEmail: manager?.email || '',
+    license: manager?.business_license_number || '',
+    timeSlots: timeSlots || 'Not configured',
+    status: mapRestaurantStatus(restaurant.status),
+    activeReservations: reservations.filter((reservation) =>
+      !['cancelled', 'completed', 'no_show'].includes(reservation.reservation_status)).length,
+    manager_id: restaurant.manager_id,
+    location_id: restaurant.location_id,
+  };
+}
+
+function getUserDisplay(user) {
+  const restaurant = user.role === 'manager'
+    ? state.restaurants.find((item) => item.manager_id === user.id)
+    : state.restaurants.find((item) => item.id === user.restaurant_id);
+
+  return {
+    id: user.id,
+    name: user.name,
+    email: user.email,
+    role: roleLabel(user.role),
+    node: restaurant?.name || 'N/A',
+    status: mapUserStatus(user.status),
+    restaurant_id: restaurant?.id || user.restaurant_id || '',
+    business_license_number: user.business_license_number || '',
+    location_id: user.location_id || restaurant?.location_id || '',
+  };
+}
+
+function getReservationDisplay(reservation) {
+  const user = state.users.find((item) => item.id === reservation.user_id);
+  const restaurant = state.restaurants.find((item) => item.id === reservation.restaurant_id);
+  const slot = state.timeslots.find((item) => item.id === reservation.slot_id);
+  return {
+    id: reservation.id,
+    dinerName: user?.name || 'Guest',
+    dinerId: reservation.user_id,
+    restaurantName: restaurant?.name || 'Restaurant',
+    restaurantId: reservation.restaurant_id,
+    date: slot?.slot_date || '',
+    time: String(slot?.start_time || '').slice(0, 5),
+    party: reservation.guest_count,
+    status: mapReservationStatus(reservation.reservation_status),
+    raw: reservation,
+  };
+}
+
+function getPaymentDisplay(payment) {
+  const reservation = state.reservations.find((item) => item.id === payment.reservation_id);
+  const user = state.users.find((item) => item.id === reservation?.user_id);
+  const restaurant = state.restaurants.find((item) => item.id === reservation?.restaurant_id);
+  return {
+    id: payment.id,
+    user: user?.name || 'Guest',
+    userId: reservation?.user_id || 'N/A',
+    restaurant: restaurant?.name || 'Restaurant',
+    restaurantId: reservation?.restaurant_id || 'N/A',
+    amount: formatCurrency(payment.amount),
+    method: payment.payment_method,
+    status: mapPaymentStatus(payment.payment_status),
+  };
+}
+
+async function syncAdminState() {
+  const endpoints = [
+    '/restaurants',
+    '/users',
+    '/reservations',
+    '/payments',
+    '/tables',
+    '/timeslots',
+    '/tableslots',
+    '/notifications',
+  ];
+
+  const settled = await Promise.allSettled(endpoints.map((path) => apiRequest(path)));
+  const payloads = settled.map((result) => (result.status === 'fulfilled' ? result.value : null));
+  const [
+    restaurantsRes,
+    usersRes,
+    reservationsRes,
+    paymentsRes,
+    tablesRes,
+    timeslotsRes,
+    tableSlotsRes,
+    notificationsRes,
+  ] = payloads;
+
+  state.restaurants = restaurantsRes?.data || state.restaurants;
+  state.users = usersRes?.data || state.users;
+  state.reservations = reservationsRes?.data || state.reservations;
+  state.payments = paymentsRes?.data || state.payments;
+  state.tables = tablesRes?.data || state.tables;
+  state.timeslots = timeslotsRes?.data || state.timeslots;
+  state.tableSlots = tableSlotsRes?.data || state.tableSlots;
+  state.notifications = notificationsRes?.data || state.notifications;
+
+  const locationIds = Array.from(new Set(state.restaurants.map((restaurant) => restaurant.location_id).filter(Boolean)));
+  const locationEntries = await Promise.all(locationIds.map(async (locationId) => {
+    try {
+      const response = await apiRequest(`/restaurants/locations/${locationId}`);
+      return [locationId, response?.data || null];
+    } catch (_error) {
+      return [locationId, null];
+    }
+  }));
+
+  state.locations = Object.fromEntries(locationEntries);
+
+  renderAll();
+}
+
+function startAutoRefresh() {
+  if (state.refreshTimer) {
+    clearInterval(state.refreshTimer);
+  }
+
+  state.refreshTimer = setInterval(() => {
+    syncAdminState().catch(() => {});
+  }, 15000);
+
+  window.addEventListener('focus', () => {
+    syncAdminState().catch(() => {});
+  });
+
+  document.addEventListener('visibilitychange', () => {
+    if (!document.hidden) {
+      syncAdminState().catch(() => {});
+    }
+  });
+}
+
+function showToast(message, type = 'success') {
+  const container = document.getElementById('toast-container');
+  if (!container) return;
+
+  const toast = document.createElement('div');
+  toast.className = `toast toast-${type}`;
+  toast.innerHTML = `<i class="fa-solid fa-circle-info"></i> ${escapeHtml(message)}`;
+  container.appendChild(toast);
+  setTimeout(() => toast.classList.add('show'), 10);
+  setTimeout(() => {
+    toast.classList.remove('show');
+    setTimeout(() => toast.remove(), 300);
+  }, 3000);
 }
 
 function showConfirmModal(title, message, onConfirm) {
-    const overlay = document.getElementById('modal-overlay');
-    const titleEl = document.getElementById('modal-title');
-    const msgEl = document.getElementById('modal-message');
-    const btnCancel = document.getElementById('btnModalCancel');
-    const btnConfirm = document.getElementById('btnModalConfirm');
+  const overlay = document.getElementById('modal-overlay');
+  const titleEl = document.getElementById('modal-title');
+  const messageEl = document.getElementById('modal-message');
+  const confirmBtn = document.getElementById('btnModalConfirm');
+  const cancelBtn = document.getElementById('btnModalCancel');
+  if (!overlay || !titleEl || !messageEl || !confirmBtn || !cancelBtn) return;
 
-    titleEl.innerText = title;
-    msgEl.innerText = message;
-    overlay.style.display = 'flex';
+  titleEl.textContent = title;
+  messageEl.textContent = message;
+  overlay.style.display = 'flex';
 
-    const closeModal = () => {
-        overlay.style.display = 'none';
-        btnConfirm.onclick = null;
-        btnCancel.onclick = null;
-    };
+  const close = () => {
+    overlay.style.display = 'none';
+    confirmBtn.onclick = null;
+    cancelBtn.onclick = null;
+  };
 
-    btnConfirm.onclick = () => {
-        onConfirm();
-        closeModal();
-    };
-    btnCancel.onclick = closeModal;
-    overlay.onclick = (e) => { if(e.target === overlay) closeModal(); };
+  cancelBtn.onclick = close;
+  confirmBtn.onclick = async () => {
+    close();
+    await onConfirm();
+  };
 }
 
-window.deleteRes = function(id, name) {
-    showConfirmModal(
-        "Delete Restaurant",
-        "CRITICAL WARNING: Removing [" + name + "] is irreversible. This will purge all associated data. Proceed?",
-        () => {
-            let resData = JSON.parse(localStorage.getItem('dt_admin_res_v5'));
-            resData = resData.filter(function(res) { return res.id !== id; });
-            localStorage.setItem('dt_admin_res_v5', JSON.stringify(resData));
-            renderGlobalTable();
-            showToast("Restaurant removed.", "error");
-            addAuditLog("Deleted restaurant " + name);
-        }
+function updateAllKPIs() {
+  const activeReservations = state.reservations.filter((reservation) =>
+    !['cancelled', 'completed', 'no_show'].includes(reservation.reservation_status));
+  const totalRevenue = state.payments
+    .filter((payment) => payment.payment_status === 'paid')
+    .reduce((sum, payment) => sum + Number(payment.amount || 0), 0);
+  const pendingRestaurants = state.restaurants.filter((restaurant) => restaurant.status !== 'active').length;
+  const dinerCount = state.users.filter((user) => user.role === 'diner').length;
+  const successCount = state.payments.filter((payment) => payment.payment_status === 'paid').length;
+  const failedCount = state.payments.filter((payment) => payment.payment_status === 'failed').length;
+  const refundTotal = state.payments
+    .filter((payment) => payment.payment_status === 'refunded')
+    .reduce((sum, payment) => sum + Number(payment.amount || 0), 0);
+
+  const byId = (id) => document.getElementById(id);
+  if (byId('dashTotalBookings')) byId('dashTotalBookings').textContent = String(activeReservations.length);
+  if (byId('dashTotalUsers')) byId('dashTotalUsers').textContent = String(dinerCount);
+  if (byId('dashTotalRes')) byId('dashTotalRes').textContent = String(state.restaurants.length);
+  if (byId('dashTotalRev')) byId('dashTotalRev').textContent = formatCurrency(totalRevenue);
+  if (byId('dashPendingApps')) byId('dashPendingApps').textContent = String(pendingRestaurants);
+  if (byId('resTabTotalRes')) byId('resTabTotalRes').textContent = String(state.restaurants.length);
+  if (byId('resTabActiveBooks')) byId('resTabActiveBooks').textContent = String(activeReservations.length);
+  if (byId('resTabTotalCapacity')) {
+    byId('resTabTotalCapacity').textContent = String(
+      state.tables.length || state.restaurants.reduce((sum, restaurant) => sum + Number(restaurant.total_tables || 0), 0),
     );
+  }
+  if (byId('paySuccessCount')) byId('paySuccessCount').textContent = String(successCount);
+  if (byId('payFailedCount')) byId('payFailedCount').textContent = String(failedCount);
+  if (byId('payRefundTotal')) byId('payRefundTotal').textContent = formatCurrency(refundTotal);
 }
 
-// --- USERS CRUD & SEARCH ---
-window.renderUsersTable = function() {
-    var tbody = document.getElementById('globalUsersBody');
-    if (!tbody) return;
-    
-    let usrData = JSON.parse(localStorage.getItem('dt_admin_usr_v5'));
-    let resData = JSON.parse(localStorage.getItem('dt_admin_res_v5')) || [];
-    updateAllKPIs(); 
-    
-    var searchQuery = document.getElementById('userDirectorySearch') ? document.getElementById('userDirectorySearch').value.toLowerCase() : '';
-    var roleFilter = document.getElementById('userRoleFilter') ? document.getElementById('userRoleFilter').value : '';
-    var statusFilter = document.getElementById('userStatusFilter') ? document.getElementById('userStatusFilter').value : '';
-    
-    var filteredUsers = usrData.filter(function(u) {
-        var matchesSearch = searchQuery === '' || u.name.toLowerCase().includes(searchQuery) || 
-               u.email.toLowerCase().includes(searchQuery) || 
-               u.role.toLowerCase().includes(searchQuery) ||
-               u.id.toLowerCase().includes(searchQuery);
-        var matchesRole = roleFilter === '' || u.role === roleFilter;
-        var matchesStatus = statusFilter === '' || u.status === statusFilter;
-        return matchesSearch && matchesRole && matchesStatus;
+function renderGlobalTable() {
+  const tbody = document.getElementById('globalRestaurantsBody');
+  if (!tbody) return;
+
+  const query = (document.getElementById('resDirectorySearch')?.value || '').trim().toLowerCase();
+  const statusFilter = document.getElementById('resStatusFilter')?.value || '';
+
+  const rows = state.restaurants
+    .map(getRestaurantDisplay)
+    .filter((restaurant) => {
+      const matchesQuery = !query
+        || restaurant.name.toLowerCase().includes(query)
+        || restaurant.city.toLowerCase().includes(query)
+        || restaurant.id.toLowerCase().includes(query)
+        || restaurant.managerName.toLowerCase().includes(query);
+      const matchesStatus = !statusFilter || restaurant.status === statusFilter;
+      return matchesQuery && matchesStatus;
     });
 
-    tbody.innerHTML = "";
-    
-    for(var i=0; i < filteredUsers.length; i++) {
-        var u = filteredUsers[i];
-        var badgeClass = u.role === "Diner" ? "badge-blue" : (u.role === "Restaurant Manager" ? "badge-yellow" : "badge-purple");
-        var statusColor = u.status === "Active" ? "#2E7D32" : (u.status === "Pending" ? "#E65100" : "#C62828");
-        
-        let resObj = resData.find(r => r.name === u.node);
-        let resDisplay = u.node === "N/A" ? "N/A" : (resObj ? `<code style='background: #f0f0f0; padding: 2px 4px; border-radius: 4px; color: var(--text-muted); font-size: 0.7rem;'>${resObj.id}</code><br><b style='display:inline-block; margin-top:4px;'>${u.node}</b>` : `<b>${u.node}</b>`);
-
-        var row = document.createElement('tr');
-        row.innerHTML = 
-            "<td><code style='color:var(--text-muted); background: #f0f0f0; padding: 2px 4px; border-radius: 4px; font-size: 0.7rem;'>" + u.id + "</code><br><b style='display:inline-block; margin-top:4px;'>" + u.name + "</b><br><span style='font-size:0.75rem; color:#666;'>" + u.email + "</span></td>" +
-            "<td><span class='badge " + badgeClass + "'>" + u.role + "</span></td>" +
-            "<td>" + resDisplay + "</td>" +
-            "<td style='color:" + statusColor + "; font-weight:bold;'>" + u.status + "</td>" +
-            "<td style='text-align: right; vertical-align: middle;'>" +
-                "<div style='display: flex; justify-content: flex-end; align-items: center; gap: 0.5rem;'>" +
-                    "<button class='btn-outline btn-sm' style='color: #E67E22; border-color: #E67E22; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; padding: 0;' onclick='editUser(\"" + u.id + "\")' title='View / Edit'><i class='fa-solid fa-eye'></i></button>" +
-                    "<button class='btn-outline btn-sm' style='color: #C62828; border-color: #ffcdd2; background: #FFEBEE; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; padding: 0;' onclick='deleteUser(\"" + u.id + "\", \"" + u.email + "\")' title='Delete User'><i class='fa-solid fa-trash'></i></button>" +
-                "</div>" +
-            "</td>";
-        tbody.appendChild(row);
-    }
+  tbody.innerHTML = '';
+  rows.forEach((restaurant) => {
+    const statusColor = restaurant.status === 'Verified' ? '#2E7D32' : '#F57F17';
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td>
+        <code style="color:var(--text-muted)">${escapeHtml(restaurant.id)}</code><br>
+        <b style="display:inline-block; margin-top:4px;">${escapeHtml(restaurant.name)}</b><br>
+        <span style="font-size:0.75rem; color:var(--text-muted);">${escapeHtml(restaurant.cuisine)} • ${escapeHtml(restaurant.city)}</span>
+      </td>
+      <td>${escapeHtml(String(restaurant.tables))} tables<br><span style="font-size:0.75rem; color:var(--text-muted);">${escapeHtml(String(restaurant.activeReservations))} active bookings</span></td>
+      <td>${escapeHtml(restaurant.managerName)}<br><span style="font-size:0.75rem; color:var(--text-muted);">${escapeHtml(restaurant.managerEmail)}</span></td>
+      <td style="color:${statusColor}; font-weight:700;">${escapeHtml(restaurant.status)}</td>
+      <td style="text-align:right;">
+        <div style="display:flex; justify-content:flex-end; gap:0.5rem;">
+          <button class="btn-outline btn-sm" style="color:#E67E22; border-color:#E67E22; width:32px; height:32px; padding:0;" onclick="editRestaurant('${escapeHtml(restaurant.id)}')" title="View / Edit"><i class="fa-solid fa-eye"></i></button>
+          <button class="btn-outline btn-sm" style="color:#C62828; border-color:#ffcdd2; background:#FFEBEE; width:32px; height:32px; padding:0;" onclick="deleteRestaurant('${escapeHtml(restaurant.id)}', '${escapeHtml(restaurant.name)}')" title="Delete Restaurant"><i class="fa-solid fa-trash"></i></button>
+        </div>
+      </td>
+    `;
+    tbody.appendChild(tr);
+  });
 }
 
-window.openUserModal = function() {
-    document.getElementById('userForm').reset();
-    document.getElementById('userId').value = "";
-    document.getElementById('userModalTitle').innerHTML = "Add User";
-    toggleRestaurantField();
-    document.getElementById('userModal').style.display = "flex";
-}
-window.closeUserModal = function() { document.getElementById('userModal').style.display = "none"; }
+function renderUsersTable() {
+  const tbody = document.getElementById('globalUsersBody');
+  if (!tbody) return;
 
-window.toggleRestaurantField = function() {
-    var role = document.getElementById('userRole').value;
-    var nodeGroup = document.getElementById('userRestaurantGroup');
-    var nodeSelect = document.getElementById('userNode');
-    
-    if (role === 'Diner') {
-        nodeGroup.style.display = 'none';
-    } else {
-        nodeGroup.style.display = 'block';
-        let resData = JSON.parse(localStorage.getItem('dt_admin_res_v5'));
-        nodeSelect.innerHTML = '<option value="N/A">Select Restaurant...</option>';
-        for(let r of resData) {
-            nodeSelect.innerHTML += `<option value="${r.name}">${r.name}</option>`;
-        }
-    }
-}
+  const query = (document.getElementById('userDirectorySearch')?.value || '').trim().toLowerCase();
+  const roleFilter = document.getElementById('userRoleFilter')?.value || '';
+  const statusFilter = document.getElementById('userStatusFilter')?.value || '';
 
-window.editUser = function(id) {
-    let usrData = JSON.parse(localStorage.getItem('dt_admin_usr_v5'));
-    var target = usrData.find(u => u.id === id);
-    if (target) {
-        document.getElementById('userId').value = target.id;
-        document.getElementById('userName').value = target.name;
-        document.getElementById('userEmail').value = target.email;
-        document.getElementById('userRole').value = target.role;
-        toggleRestaurantField();
-        document.getElementById('userNode').value = target.node;
-        document.getElementById('userStatus').value = target.status;
-        
-        document.getElementById('userModalTitle').innerHTML = "View / Edit User";
-        document.getElementById('userModal').style.display = "flex";
-    }
-}
-
-window.deleteUser = function(id, email) {
-    showConfirmModal(
-        "Delete Account",
-        "Are you sure you want to delete the account for " + email + "? This action is permanent.",
-        () => {
-            let usrData = JSON.parse(localStorage.getItem('dt_admin_usr_v5'));
-            usrData = usrData.filter(u => u.id !== id);
-            localStorage.setItem('dt_admin_usr_v5', JSON.stringify(usrData));
-            renderUsersTable();
-            showToast("User deleted.", "error");
-            addAuditLog("Deleted user account " + email);
-        }
-    );
-}
-
-// --- NEW: RESERVATIONS CRUD & SEARCH ---
-window.renderReservationsTable = function() {
-    var tbody = document.getElementById('globalReservationsBody');
-    if (!tbody) return;
-    
-    var filterType = document.getElementById('resFilterType') ? document.getElementById('resFilterType').value : 'restaurantName';
-    var searchQuery = document.getElementById('resSearchQuery') ? document.getElementById('resSearchQuery').value.toLowerCase() : '';
-    var searchDate = document.getElementById('resSearchDate') ? document.getElementById('resSearchDate').value : '';
-    var bookingStatusFilter = document.getElementById('resBookingStatusFilter') ? document.getElementById('resBookingStatusFilter').value : '';
-    
-    let bkgData = JSON.parse(localStorage.getItem('dt_admin_bkg_v5'));
-    tbody.innerHTML = "";
-    
-    var filteredRes = bkgData.filter(function(r) {
-        if (searchDate !== "" && r.date !== searchDate) return false;
-        var matchesStatus = bookingStatusFilter === '' || r.status === bookingStatusFilter;
-        if (!matchesStatus) return false;
-        if (searchQuery === "") return true;
-        if (filterType === "restaurantName") return r.restaurantName.toLowerCase().includes(searchQuery);
-        if (filterType === "restaurantId") return r.restaurantId.toLowerCase().includes(searchQuery);
-        if (filterType === "dinerName") return r.dinerName.toLowerCase().includes(searchQuery);
-        if (filterType === "dinerId") return r.dinerId.toLowerCase().includes(searchQuery);
-        return true;
+  const rows = state.users
+    .filter((user) => user.role !== 'super_user')
+    .map(getUserDisplay)
+    .filter((user) => {
+      const matchesQuery = !query
+        || user.id.toLowerCase().includes(query)
+        || user.name.toLowerCase().includes(query)
+        || user.email.toLowerCase().includes(query)
+        || user.role.toLowerCase().includes(query);
+      const matchesRole = !roleFilter || user.role === roleFilter;
+      const matchesStatus = !statusFilter || user.status === statusFilter;
+      return matchesQuery && matchesRole && matchesStatus;
     });
 
-    for(var i=0; i < filteredRes.length; i++) {
-        var r = filteredRes[i];
-        var badgeHTML = "";
-        if(r.status === "Booking") badgeHTML = "<span class='badge badge-blue'><i class='fa-solid fa-calendar'></i> Booking</span>";
-        else if(r.status === "Customer Check-In") badgeHTML = "<span class='badge badge-green'><i class='fa-solid fa-check'></i> Check-In</span>";
-        else if(r.status === "No-Show") badgeHTML = "<span class='badge badge-red'><i class='fa-solid fa-triangle-exclamation'></i> No-Show</span>";
-
-        var row = document.createElement('tr');
-        row.innerHTML = 
-            "<td><code style='color:var(--text-muted)'>" + r.id + "</code><br><span style='font-size:0.75rem;'>" + r.date + " " + r.time + "</span></td>" +
-            "<td><code style='background: #f0f0f0; padding: 2px 4px; border-radius: 4px; color: var(--text-muted); font-size: 0.7rem;'>" + r.dinerId + "</code><br><b style='display:inline-block; margin-top:4px;'>" + r.dinerName + "</b></td>" +
-            "<td><code style='background: #f0f0f0; padding: 2px 4px; border-radius: 4px; color: var(--text-muted); font-size: 0.7rem;'>" + r.restaurantId + "</code><br><b style='display:inline-block; margin-top:4px;'>" + r.restaurantName + "</b></td>" +
-            "<td>" + r.party + "</td>" +
-            "<td>" + badgeHTML + "</td>" +
-            "<td style='text-align: right; vertical-align: middle;'>" +
-                "<div style='display: flex; justify-content: flex-end; align-items: center; gap: 0.5rem;'>" +
-                    "<button class='btn-outline btn-sm' style='color: #E67E22; border-color: #E67E22; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; padding: 0;' onclick='editReservation(\"" + r.id + "\")' title='View / Edit'><i class='fa-solid fa-eye'></i></button>" +
-                    "<button class='btn-outline btn-sm' style='color: #C62828; border-color: #ffcdd2; background: #FFEBEE; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; padding: 0;' onclick='deleteReservation(\"" + r.id + "\", \"" + r.dinerName + "\")' title='Delete Reservation'><i class='fa-solid fa-trash'></i></button>" +
-                "</div>" +
-            "</td>";
-        tbody.appendChild(row);
-    }
+  tbody.innerHTML = '';
+  rows.forEach((user) => {
+    const statusColor = user.status === 'Active' ? '#2E7D32' : '#C62828';
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td>
+        <code style="color:var(--text-muted)">${escapeHtml(user.id)}</code><br>
+        <b style="display:inline-block; margin-top:4px;">${escapeHtml(user.name)}</b><br>
+        <span style="font-size:0.75rem; color:var(--text-muted);">${escapeHtml(user.email)}</span>
+      </td>
+      <td>${escapeHtml(user.role)}</td>
+      <td>${escapeHtml(user.node)}</td>
+      <td style="color:${statusColor}; font-weight:700;">${escapeHtml(user.status)}</td>
+      <td style="text-align:right;">
+        <div style="display:flex; justify-content:flex-end; gap:0.5rem;">
+          <button class="btn-outline btn-sm" style="color:#E67E22; border-color:#E67E22; width:32px; height:32px; padding:0;" onclick="editUser('${escapeHtml(user.id)}')" title="View / Edit"><i class="fa-solid fa-eye"></i></button>
+          <button class="btn-outline btn-sm" style="color:#C62828; border-color:#ffcdd2; background:#FFEBEE; width:32px; height:32px; padding:0;" onclick="deleteUser('${escapeHtml(user.id)}', '${escapeHtml(user.email)}')" title="Delete User"><i class="fa-solid fa-trash"></i></button>
+        </div>
+      </td>
+    `;
+    tbody.appendChild(tr);
+  });
 }
 
-window.openReservationModal = function() {
-    document.getElementById('reservationForm').reset();
-    document.getElementById('bkgId').value = "";
-    document.getElementById('reservationModalTitle').innerHTML = "Add Reservation";
-    
-    // --- UPDATED: Restrict Date to Today and Any Future Date ---
-    const today = new Date();
-    // Format to YYYY-MM-DD for HTML5 date input
-    const todayStr = today.toISOString().split('T')[0];
+function renderReservationsTable() {
+  const tbody = document.getElementById('globalReservationsBody');
+  if (!tbody) return;
 
-    const dateInput = document.getElementById('bkgDate');
-    dateInput.min = todayStr;
-    dateInput.removeAttribute('max'); // Removes the "tomorrow" limit
-    // -----------------------------------------------------------
+  const filterType = document.getElementById('resFilterType')?.value || 'restaurantName';
+  const query = (document.getElementById('resSearchQuery')?.value || '').trim().toLowerCase();
+  const dateFilter = document.getElementById('resSearchDate')?.value || '';
+  const statusFilter = document.getElementById('resBookingStatusFilter')?.value || '';
 
-    let resData = JSON.parse(localStorage.getItem('dt_admin_res_v5')) || [];
-    let resSelect = document.getElementById('bkgRestaurant');
-    resSelect.innerHTML = '<option value="">Select Restaurant...</option>';
-    resData.forEach(r => {
-        resSelect.innerHTML += `<option value="${r.id}">${r.name}</option>`;
+  const rows = state.reservations
+    .map(getReservationDisplay)
+    .filter((reservation) => {
+      if (dateFilter && reservation.date !== dateFilter) return false;
+      if (statusFilter && reservation.status !== statusFilter) return false;
+      if (!query) return true;
+      const haystacks = {
+        restaurantName: reservation.restaurantName.toLowerCase(),
+        restaurantId: reservation.restaurantId.toLowerCase(),
+        dinerName: reservation.dinerName.toLowerCase(),
+        dinerId: reservation.dinerId.toLowerCase(),
+      };
+      return (haystacks[filterType] || '').includes(query);
     });
-    
-    document.getElementById('reservationModal').style.display = "flex";
-}
 
-window.closeReservationModal = function() { 
-    document.getElementById('reservationModal').style.display = "none"; 
-}
-
-window.editReservation = function(id) {
-    let bkgData = JSON.parse(localStorage.getItem('dt_admin_bkg_v5')) || [];
-    var target = bkgData.find(r => r.id === id);
-    if (target) {
-        document.getElementById('bkgId').value = target.id;
-        document.getElementById('bkgDinerName').value = target.dinerName;
-        document.getElementById('bkgDinerId').value = target.dinerId;
-        
-        let resData = JSON.parse(localStorage.getItem('dt_admin_res_v5')) || [];
-        let resSelect = document.getElementById('bkgRestaurant');
-        resSelect.innerHTML = '<option value="">Select Restaurant...</option>';
-        resData.forEach(r => {
-            resSelect.innerHTML += `<option value="${r.id}" ${r.id === target.restaurantId ? 'selected' : ''}>${r.name}</option>`;
-        });
-        
-        document.getElementById('bkgDate').value = target.date;
-        document.getElementById('bkgTime').value = target.time;
-        document.getElementById('bkgParty').value = target.party;
-        document.getElementById('bkgStatus').value = target.status;
-        
-        document.getElementById('reservationModalTitle').innerHTML = "View / Edit Reservation";
-        document.getElementById('reservationModal').style.display = "flex";
+  tbody.innerHTML = '';
+  rows.forEach((reservation) => {
+    let badge = '<span class="badge badge-blue"><i class="fa-solid fa-calendar"></i> Booking</span>';
+    if (reservation.status === 'Customer Check-In') {
+      badge = '<span class="badge badge-green"><i class="fa-solid fa-check"></i> Check-In</span>';
+    } else if (reservation.status === 'No-Show') {
+      badge = '<span class="badge badge-red"><i class="fa-solid fa-triangle-exclamation"></i> No-Show</span>';
+    } else if (reservation.status === 'Completed') {
+      badge = '<span class="badge badge-green"><i class="fa-solid fa-flag-checkered"></i> Completed</span>';
     }
+
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td><code style="color:var(--text-muted)">${escapeHtml(reservation.id)}</code><br><span style="font-size:0.75rem;">${escapeHtml(reservation.date)} ${escapeHtml(reservation.time)}</span></td>
+      <td><code style="background:#f0f0f0; padding:2px 4px; border-radius:4px; color:var(--text-muted); font-size:0.7rem;">${escapeHtml(reservation.dinerId)}</code><br><b style="display:inline-block; margin-top:4px;">${escapeHtml(reservation.dinerName)}</b></td>
+      <td><code style="background:#f0f0f0; padding:2px 4px; border-radius:4px; color:var(--text-muted); font-size:0.7rem;">${escapeHtml(reservation.restaurantId)}</code><br><b style="display:inline-block; margin-top:4px;">${escapeHtml(reservation.restaurantName)}</b></td>
+      <td>${escapeHtml(String(reservation.party))}</td>
+      <td>${badge}</td>
+      <td style="text-align:right;">
+        <div style="display:flex; justify-content:flex-end; gap:0.5rem;">
+          <button class="btn-outline btn-sm" style="color:#E67E22; border-color:#E67E22; width:32px; height:32px; padding:0;" onclick="editReservation('${escapeHtml(reservation.id)}')" title="View / Edit"><i class="fa-solid fa-eye"></i></button>
+          <button class="btn-outline btn-sm" style="color:#C62828; border-color:#ffcdd2; background:#FFEBEE; width:32px; height:32px; padding:0;" onclick="deleteReservation('${escapeHtml(reservation.id)}', '${escapeHtml(reservation.dinerName)}')" title="Cancel Reservation"><i class="fa-solid fa-trash"></i></button>
+        </div>
+      </td>
+    `;
+    tbody.appendChild(tr);
+  });
 }
 
-window.deleteReservation = function(id, dinerName) {
-    showConfirmModal(
-        "Delete Reservation",
-        "Are you sure you want to delete the reservation for " + dinerName + "?",
-        () => {
-            let bkgData = JSON.parse(localStorage.getItem('dt_admin_bkg_v5')) || [];
-            bkgData = bkgData.filter(r => r.id !== id);
-            localStorage.setItem('dt_admin_bkg_v5', JSON.stringify(bkgData));
-            renderReservationsTable();
-            updateAllKPIs();
-            showToast("Reservation deleted.", "error");
-            addAuditLog("Deleted reservation for " + dinerName);
-        }
-    );
-}
-
-// --- PAYMENTS ---
 function renderPaymentsTable() {
-    var tbody = document.getElementById('globalPaymentsBody');
-    if (!tbody) return;
-    tbody.innerHTML = "";
-    
-    let payData = JSON.parse(localStorage.getItem('dt_admin_pay_v5'));
-    for(var i=0; i < payData.length; i++) {
-        var p = payData[i];
-        var badgeClass = p.status === "Success" ? "badge-green" : (p.status === "Failed" ? "badge-red" : "badge-yellow");
-        var row = document.createElement('tr');
-        row.innerHTML = 
-            "<td><code style='color:var(--text-muted)'>" + p.id + "</code></td>" +
-            "<td><code style='background: #f0f0f0; padding: 2px 4px; border-radius: 4px; color: var(--text-muted); font-size: 0.7rem;'>" + p.userId + "</code><br><b style='display:inline-block; margin-top:4px;'>" + p.user + "</b></td>" +
-            "<td><code style='background: #f0f0f0; padding: 2px 4px; border-radius: 4px; color: var(--text-muted); font-size: 0.7rem;'>" + p.restaurantId + "</code><br><b style='display:inline-block; margin-top:4px;'>" + p.restaurant + "</b></td>" +
-            "<td style='font-weight:700;'>" + p.amount + "</td>" +
-            "<td>" + p.method + "</td>" +
-            "<td><span class='badge " + badgeClass + "'>" + p.status + "</span></td>";
-        tbody.appendChild(row);
-    }
+  const tbody = document.getElementById('globalPaymentsBody');
+  if (!tbody) return;
+
+  const rows = state.payments.map(getPaymentDisplay);
+  tbody.innerHTML = '';
+  rows.forEach((payment) => {
+    const badgeClass = payment.status === 'Success'
+      ? 'badge-green'
+      : payment.status === 'Failed'
+        ? 'badge-red'
+        : 'badge-yellow';
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td><code style="color:var(--text-muted)">${escapeHtml(payment.id)}</code></td>
+      <td><code style="background:#f0f0f0; padding:2px 4px; border-radius:4px; color:var(--text-muted); font-size:0.7rem;">${escapeHtml(payment.userId)}</code><br><b style="display:inline-block; margin-top:4px;">${escapeHtml(payment.user)}</b></td>
+      <td><code style="background:#f0f0f0; padding:2px 4px; border-radius:4px; color:var(--text-muted); font-size:0.7rem;">${escapeHtml(payment.restaurantId)}</code><br><b style="display:inline-block; margin-top:4px;">${escapeHtml(payment.restaurant)}</b></td>
+      <td style="font-weight:700;">${escapeHtml(payment.amount)}</td>
+      <td>${escapeHtml(payment.method)}</td>
+      <td><span class="badge ${badgeClass}">${escapeHtml(payment.status)}</span></td>
+    `;
+    tbody.appendChild(tr);
+  });
 }
 
-// --- AUDIT LOGS ---
 function renderAuditLogs() {
-    var container = document.getElementById('auditLogsContainer');
-    if (!container) return;
-    container.innerHTML = "";
-    
-    let logData = JSON.parse(localStorage.getItem('dt_admin_log_v5'));
-    for(var i = logData.length - 1; i >= 0; i--) {
-        var log = logData[i];
-        var div = document.createElement('div');
-        div.style = "display: flex; align-items: flex-start; gap: 1rem; padding: 1rem 1.25rem; border-bottom: 1px solid var(--border-light);";
-        div.innerHTML = 
-            "<div style='font-family: monospace; color: var(--text-muted); width: 80px; flex-shrink: 0; font-size: 0.8rem;'>" + log.time + "</div>" +
-            "<div style='color: var(--text-dark); font-size: 0.9rem;'>" + log.message + "</div>";
-        container.appendChild(div);
-    }
+  const container = document.getElementById('auditLogsContainer');
+  if (!container) return;
+
+  const logData = getAuditLog();
+  container.innerHTML = '';
+  for (let index = logData.length - 1; index >= 0; index -= 1) {
+    const log = logData[index];
+    const div = document.createElement('div');
+    div.style = 'display:flex; align-items:flex-start; gap:1rem; padding:1rem 1.25rem; border-bottom:1px solid var(--border-light);';
+    div.innerHTML = `
+      <div style="font-family:monospace; color:var(--text-muted); width:80px; flex-shrink:0; font-size:0.8rem;">${escapeHtml(log.time)}</div>
+      <div style="color:var(--text-dark); font-size:0.9rem;">${escapeHtml(log.message)}</div>
+    `;
+    container.appendChild(div);
+  }
 }
 
-function addAuditLog(msg) {
-    let logData = JSON.parse(localStorage.getItem('dt_admin_log_v5'));
-    let now = new Date();
-    let timeStr = now.getHours().toString().padStart(2, '0') + ":" + now.getMinutes().toString().padStart(2, '0') + ":" + now.getSeconds().toString().padStart(2, '0');
-    logData.push({ time: timeStr, message: msg });
-    localStorage.setItem('dt_admin_log_v5', JSON.stringify(logData));
-    renderAuditLogs(); 
+function generateReport() {
+  const scope = document.getElementById('reportScope')?.value || 'platform';
+  const query = (document.getElementById('reportRestaurantSearch')?.value || '').trim().toLowerCase();
+
+  const restaurants = state.restaurants
+    .map(getRestaurantDisplay)
+    .filter((restaurant) => {
+      const matchesScope = scope === 'platform' || restaurant.city === scope;
+      const matchesQuery = !query || restaurant.name.toLowerCase().includes(query);
+      return matchesScope && matchesQuery;
+    });
+
+  if (document.getElementById('repNodes')) {
+    document.getElementById('repNodes').textContent = String(restaurants.length);
+  }
+
+  const restaurantIds = new Set(restaurants.map((restaurant) => restaurant.id));
+  const filteredReservations = state.reservations.filter((reservation) => restaurantIds.has(reservation.restaurant_id));
+  const filteredPayments = state.payments.filter((payment) => {
+    const reservation = state.reservations.find((item) => item.id === payment.reservation_id);
+    return reservation && restaurantIds.has(reservation.restaurant_id) && payment.payment_status === 'paid';
+  });
+  const filteredTables = state.tables.filter((table) => restaurantIds.has(table.restaurant_id));
+  const revenue = filteredPayments.reduce((sum, payment) => sum + Number(payment.amount || 0), 0);
+  const bookings = filteredReservations.length;
+  const capacityPct = filteredTables.length
+    ? Math.min(Math.round((bookings / filteredTables.length) * 100), 100)
+    : 0;
+
+  if (document.getElementById('repBook')) document.getElementById('repBook').textContent = String(bookings);
+  if (document.getElementById('repRev')) document.getElementById('repRev').textContent = formatCurrency(revenue);
+  if (document.getElementById('repCap')) document.getElementById('repCap').textContent = `${capacityPct}%`;
+
+  const cuisineStats = {};
+  restaurants.forEach((restaurant) => {
+    cuisineStats[restaurant.cuisine] = (cuisineStats[restaurant.cuisine] || 0) + restaurant.activeReservations;
+  });
+
+  const cuisineBarsContainer = document.getElementById('cuisineBarsContainer');
+  if (cuisineBarsContainer) {
+    const colors = ['var(--primary-green)', '#1976D2', '#F57F17', '#C62828', '#00897B'];
+    const maxCount = Math.max(1, ...Object.values(cuisineStats), 1);
+    const rows = Object.entries(cuisineStats)
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 5)
+      .map(([name, count], index) => {
+        const pct = Math.round((count / maxCount) * 100);
+        return `
+          <div style="margin-bottom:0.75rem;">
+            <div style="display:flex; justify-content:space-between; margin-bottom:8px;">
+              <span style="color:var(--text-dark); font-weight:600; font-size:0.85rem;">${escapeHtml(name)}</span>
+              <span style="color:var(--text-muted); font-size:0.8rem;">${escapeHtml(String(count))}</span>
+            </div>
+            <div style="width:100%; background:#F1F5F9; height:8px; border-radius:4px; overflow:hidden;">
+              <div style="width:${pct}%; background:${colors[index % colors.length]}; height:100%; border-radius:4px;"></div>
+            </div>
+          </div>
+        `;
+      });
+    cuisineBarsContainer.innerHTML = rows.join('') || '<p style="color:var(--text-muted); font-size:0.85rem;">No data available.</p>';
+  }
+
+  const revenueListContainer = document.getElementById('revenueListContainer');
+  if (revenueListContainer) {
+    const items = restaurants
+      .map((restaurant) => {
+        const total = filteredPayments
+          .filter((payment) => {
+            const reservation = state.reservations.find((item) => item.id === payment.reservation_id);
+            return reservation?.restaurant_id === restaurant.id;
+          })
+          .reduce((sum, payment) => sum + Number(payment.amount || 0), 0);
+        return { restaurant, total };
+      })
+      .sort((a, b) => b.total - a.total)
+      .slice(0, 5)
+      .map(({ restaurant, total }) => `
+        <div style="display:flex; justify-content:space-between; align-items:center; padding:1rem 0; border-bottom:1px solid var(--border-light);">
+          <div>
+            <div style="font-weight:700; color:var(--text-dark);">${escapeHtml(restaurant.name)}</div>
+            <div style="font-size:0.75rem; color:var(--text-muted);">${escapeHtml(restaurant.city)} • ${escapeHtml(String(restaurant.activeReservations))} active bookings</div>
+          </div>
+          <div style="color:#2E7D32; font-weight:800;">${escapeHtml(formatCurrency(total))}</div>
+        </div>
+      `);
+    revenueListContainer.innerHTML = items.join('') || '<p style="color:var(--text-muted); font-size:0.85rem;">No revenue generated yet.</p>';
+  }
 }
 
-// --- REPORTS ---
-window.generateReport = function() {
-    var scope = document.getElementById('reportScope').value;
-    var searchInput = document.getElementById('reportRestaurantSearch').value.toLowerCase();
-    
-    var filteredData = JSON.parse(localStorage.getItem('dt_admin_res_v5'));
-    
-    if (scope !== "platform") filteredData = filteredData.filter(function(res) { return res.city === scope; });
-    if (searchInput !== "") filteredData = filteredData.filter(function(res) { return res.name.toLowerCase().includes(searchInput); });
+function renderRecentActivity() {
+  const container = document.getElementById('recentActivityContainer');
+  if (!container) return;
 
-    if (filteredData.length === 0) {
-        showToast("No records match your filters.", "warning");
-        return;
-    }
+  const items = [];
 
-    var totalRev = 0, totalBooks = 0, totalTables = 0;
-    var cuisineStats = {};
+  // Pull most recent 3 reservations
+  const sortedReservations = [...state.reservations]
+    .sort((a, b) => new Date(b.created_at || 0) - new Date(a.created_at || 0))
+    .slice(0, 3);
 
-    for(var i=0; i<filteredData.length; i++) {
-        var node = filteredData[i];
-        totalRev += node.activeReservations * 850; 
-        totalBooks += node.activeReservations;
-        totalTables += node.tables;
-        if (!cuisineStats[node.cuisine]) cuisineStats[node.cuisine] = 0;
-        cuisineStats[node.cuisine] += node.activeReservations;
-    }
+  sortedReservations.forEach((reservation) => {
+    const user = state.users.find((u) => u.id === reservation.user_id);
+    const restaurant = state.restaurants.find((r) => r.id === reservation.restaurant_id);
+    const status = reservation.reservation_status;
+    let icon = 'fa-calendar-check';
+    let color = '#1976D2';
+    let label = 'New reservation';
+    if (status === 'cancelled' || status === 'no_show') { icon = 'fa-triangle-exclamation'; color = '#C62828'; label = 'Reservation cancelled'; }
+    else if (status === 'completed') { icon = 'fa-flag-checkered'; color = '#2E7D32'; label = 'Reservation completed'; }
+    else if (status === 'checked_in') { icon = 'fa-circle-check'; color = '#2E7D32'; label = 'Customer checked in'; }
+    const name = user?.name || 'A diner';
+    const rest = restaurant?.name || 'a restaurant';
+    items.push({ icon, color, text: `${escapeHtml(label)}: ${escapeHtml(name)} at ${escapeHtml(rest)}`, id: reservation.id });
+  });
 
-    document.getElementById('repNodes').innerHTML = filteredData.length;
-    document.getElementById('repBook').innerHTML = totalBooks;
-    document.getElementById('repRev').innerHTML = "₹" + totalRev.toLocaleString('en-IN');
-    document.getElementById('repCap').innerHTML = (totalTables > 0 ? Math.min(Math.round((totalBooks / (totalTables * 4)) * 100), 100) : 0) + "%";
+  // Pull most recent 2 payments
+  const sortedPayments = [...state.payments]
+    .filter((p) => p.payment_status === 'paid')
+    .sort((a, b) => new Date(b.payment_time || 0) - new Date(a.payment_time || 0))
+    .slice(0, 2);
 
-    var cuisineHtml = "";
-    var colors = ["var(--primary-green)", "#1976D2", "#F57F17", "#8E24AA", "#D32F2F"]; 
-    var cuisineArray = Object.keys(cuisineStats).map(function(key) { return { name: key, bookings: cuisineStats[key] }; }).sort(function(a, b) { return b.bookings - a.bookings; });
-    var maxBooks = totalBooks > 0 ? totalBooks : 1;
+  sortedPayments.forEach((payment) => {
+    const reservation = state.reservations.find((r) => r.id === payment.reservation_id);
+    const restaurant = state.restaurants.find((r) => r.id === reservation?.restaurant_id);
+    items.push({
+      icon: 'fa-indian-rupee-sign',
+      color: '#2E7D32',
+      text: `Payment received: ${escapeHtml(formatCurrency(payment.amount))} for ${escapeHtml(restaurant?.name || 'a restaurant')}`,
+      id: payment.id,
+    });
+  });
 
-    for (var j = 0; j < Math.min(cuisineArray.length, 5); j++) { 
-        var c = cuisineArray[j];
-        if (c.bookings === 0) continue; 
-        var percentage = Math.round((c.bookings / maxBooks) * 100);
-        
-        cuisineHtml += "<div style='margin-bottom: 0.5rem;'><div style='display: flex; justify-content: space-between; margin-bottom: 8px;'><span style='color: var(--text-dark); font-weight: 600; font-size: 0.85rem;'>" + c.name + "</span><span style='color: var(--text-muted); font-size: 0.8rem; font-weight: 500;'>" + c.bookings + " (" + percentage + "%)</span></div><div style='width: 100%; background: #F1F5F9; height: 8px; border-radius: 4px; overflow: hidden;'><div style='width: " + percentage + "%; background: " + colors[j % colors.length] + "; height: 100%; border-radius: 4px; transition: width 1s ease-out;'></div></div></div>";
-    }
-    
-    document.getElementById('cuisineBarsContainer').innerHTML = cuisineHtml || "<p style='color: var(--text-muted); font-size: 0.85rem;'>No active bookings.</p>";
+  if (items.length === 0) {
+    container.innerHTML = '<div style="padding: 1.25rem; color: var(--text-muted); font-size: 0.875rem;">No recent activity yet.</div>';
+    return;
+  }
 
-    var revenueHtml = "";
-    var sortedNodes = [...filteredData].sort(function(a, b) { return b.activeReservations - a.activeReservations; });
-    
-    for (var k = 0; k < Math.min(sortedNodes.length, 5); k++) { 
-        var r = sortedNodes[k];
-        var nodeRev = r.activeReservations * 850;
-        if (nodeRev === 0) continue;
-        revenueHtml += "<div style='display: flex; justify-content: space-between; align-items: center; padding: 1rem 0; border-bottom: 1px solid var(--border-light);'><div style='display: flex; align-items: center; gap: 1rem;'><div style='width: 40px; height: 40px; background: var(--bg-light); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; border: 1px solid var(--border-light); color: var(--primary-green);'><i class='fa-solid fa-utensils'></i></div><div><div style='color: var(--text-dark); font-size: 0.9rem; font-weight: 700; margin-bottom: 2px;'><code style='background: #f0f0f0; padding: 2px 4px; border-radius: 4px; color: var(--text-muted); font-size: 0.7rem; font-weight: normal; margin-right: 6px;'>" + r.id + "</code>" + r.name + "</div><div style='color: var(--text-muted); font-size: 0.75rem;'>" + r.activeReservations + " Bookings</div></div></div><div style='color: #2E7D32; font-weight: 800; font-size: 0.95rem;'>₹" + nodeRev.toLocaleString('en-IN') + "</div></div>";
-    }
-    
-    document.getElementById('revenueListContainer').innerHTML = revenueHtml || "<p style='color: var(--text-muted); font-size: 0.85rem;'>No revenue generated yet.</p>";
-    document.getElementById('reportResults').style.display = "block";
-    addAuditLog("Generated system report for Region: " + scope);
+  container.innerHTML = items.map((item, index) => `
+    <div style="display: flex; gap: 1rem; padding: 1rem 1.25rem; ${index < items.length - 1 ? 'border-bottom: 1px solid var(--border-light);' : ''} align-items: center;">
+      <i class="fa-solid ${escapeHtml(item.icon)}" style="color: ${item.color}; font-size: 1.1rem; width: 20px; text-align: center;"></i>
+      <div style="font-weight: 500; font-size: 0.85rem; color: var(--text-dark);">${item.text}</div>
+    </div>
+  `).join('');
 }
 
-// --- BROADCAST ---
-window.sendBroadcast = function(event) {
-    event.preventDefault();
-    showToast("Broadcast message sent successfully.", "success");
-    addAuditLog("Sent broadcast message to selected users");
-    event.target.reset();
+function renderAll() {
+  updateAllKPIs();
+  renderGlobalTable();
+  renderUsersTable();
+  renderReservationsTable();
+  renderPaymentsTable();
+  renderAuditLogs();
+  renderRecentActivity();
+  generateReport();
 }
 
-window.logoutSuperAdmin = function() {
-    localStorage.removeItem('super_auth_status');
-    window.location.href = "login.html";
+function ensureRestaurantSelects() {
+  const options = state.restaurants.map((restaurant) =>
+    `<option value="${escapeHtml(restaurant.id)}">${escapeHtml(restaurant.name)}</option>`);
+  const nodeSelect = document.getElementById('userNode');
+  const reservationSelect = document.getElementById('bkgRestaurant');
+  if (nodeSelect) {
+    nodeSelect.innerHTML = '<option value="">Select Restaurant...</option>' + options.join('');
+  }
+  if (reservationSelect) {
+    reservationSelect.innerHTML = '<option value="">Select Restaurant...</option>' + options.join('');
+  }
 }
 
-// --- UTILS & ROUTING ---
-window.switchTab = function(tabName) {
-    var views = document.querySelectorAll('.dashboard-view');
-    for (var i = 0; i < views.length; i++) views[i].style.display = 'none';
+function generatedLocationId() {
+  return `loc_admin_${Date.now()}`;
+}
 
-    var navItems = document.querySelectorAll('.sidebar .nav-item');
-    for (var j = 0; j < navItems.length; j++) {
-        navItems[j].classList.remove('active');
+function parseTimeTo24Hour(value) {
+  const trimmed = String(value || '').trim();
+  if (!trimmed) return null;
+  if (/^\d{2}:\d{2}$/.test(trimmed)) return trimmed;
+
+  const match = trimmed.match(/^(\d{1,2}):(\d{2})\s*(AM|PM)$/i);
+  if (!match) return null;
+
+  let hour = Number(match[1]);
+  const minute = match[2];
+  const suffix = match[3].toUpperCase();
+  if (suffix === 'AM' && hour === 12) hour = 0;
+  if (suffix === 'PM' && hour !== 12) hour += 12;
+  return `${String(hour).padStart(2, '0')}:${minute}`;
+}
+
+function parseOperatingHours(value) {
+  const parts = String(value || '').split('-');
+  if (parts.length !== 2) {
+    return null;
+  }
+
+  const start = parseTimeTo24Hour(parts[0]);
+  const end = parseTimeTo24Hour(parts[1]);
+  if (!start || !end) {
+    return null;
+  }
+
+  return { start, end };
+}
+
+async function ensureRestaurantInfrastructure(restaurantId, tableCount, hoursLabel) {
+  const currentTables = state.tables.filter((table) => table.restaurant_id === restaurantId).length;
+  if (currentTables === 0) {
+    const capacityPattern = [2, 2, 4, 4, 4, 6, 6, 8];
+    for (let index = 0; index < tableCount; index += 1) {
+      await apiRequest('/tables', {
+        method: 'POST',
+        body: JSON.stringify({
+          restaurant_id: restaurantId,
+          table_number: index + 1,
+          capacity: capacityPattern[index % capacityPattern.length],
+        }),
+      });
+    }
+  }
+
+  const currentSlots = state.timeslots.filter((slot) => slot.restaurant_id === restaurantId).length;
+  const parsedHours = parseOperatingHours(hoursLabel);
+  if (currentSlots === 0 && parsedHours) {
+    for (let dayOffset = 0; dayOffset < 7; dayOffset += 1) {
+      const date = new Date();
+      date.setDate(date.getDate() + dayOffset);
+      const slotDate = date.toISOString().split('T')[0];
+      await apiRequest('/timeslots', {
+        method: 'POST',
+        body: JSON.stringify({
+          restaurant_id: restaurantId,
+          slot_date: slotDate,
+          start_time: parsedHours.start,
+          end_time: parsedHours.end,
+        }),
+      });
+    }
+  }
+
+  await apiRequest('/tableslots/seed', {
+    method: 'POST',
+    body: JSON.stringify({ restaurant_id: restaurantId }),
+  });
+}
+
+async function saveRestaurant(event) {
+  event.preventDefault();
+
+  const formData = {
+    id: document.getElementById('resId').value,
+    name: document.getElementById('resName').value.trim(),
+    cuisine: document.getElementById('resCuisine').value.trim(),
+    tables: Number(document.getElementById('resTables').value || 0),
+    address: document.getElementById('resAddress').value.trim(),
+    city: document.getElementById('resCity').value.trim(),
+    pincode: document.getElementById('resPincode').value.trim(),
+    managerName: document.getElementById('resManagerName').value.trim(),
+    managerEmail: document.getElementById('resManagerEmail').value.trim().toLowerCase(),
+    license: document.getElementById('resLicense').value.trim(),
+    timeSlots: document.getElementById('resTimeSlots').value.trim(),
+    status: document.getElementById('resStatus').value,
+  };
+
+  const restaurantStatus = formData.status === 'Verified' ? 'active' : 'inactive';
+  const verified = formData.status === 'Verified';
+
+  let manager = state.users.find((user) => user.email.toLowerCase() === formData.managerEmail);
+  if (manager && manager.role !== 'manager') {
+    throw new Error('That email already belongs to a non-manager account');
+  }
+
+  if (!manager) {
+    const createdManager = await apiRequest('/users', {
+      method: 'POST',
+      body: JSON.stringify({
+        name: formData.managerName,
+        email: formData.managerEmail,
+        password_hash: 'password123',
+        role: 'manager',
+        status: restaurantStatus,
+        location_id: generatedLocationId(),
+        business_license_number: formData.license,
+        government_id: '',
+        verified_status: verified,
+      }),
+    });
+    manager = createdManager?.data;
+  } else {
+    await apiRequest(`/users/${manager.id}`, {
+      method: 'PATCH',
+      body: JSON.stringify({
+        name: formData.managerName,
+        email: formData.managerEmail,
+        status: restaurantStatus,
+        business_license_number: formData.license,
+        verified_status: verified,
+      }),
+    });
+  }
+
+  const existingRestaurant = state.restaurants.find((restaurant) => restaurant.id === formData.id);
+  const locationId = existingRestaurant?.location_id || manager.location_id || generatedLocationId();
+  await apiRequest('/restaurants/locations', {
+    method: 'POST',
+    body: JSON.stringify({
+      id: locationId,
+      latitude: 12.9716,
+      longitude: 77.5946,
+      city: formData.city,
+      pincode: formData.pincode,
+      address: formData.address,
+      country: 'India',
+    }),
+  });
+
+  let restaurantId = formData.id;
+  const payload = {
+    manager_id: manager.id,
+    location_id: locationId,
+    name: formData.name,
+    cuisine_type: formData.cuisine,
+    description: `${formData.name} restaurant`,
+    total_tables: formData.tables,
+    status: restaurantStatus,
+    image_urls: existingRestaurant?.image_urls || [],
+  };
+
+  if (existingRestaurant) {
+    await apiRequest(`/restaurants/${existingRestaurant.id}`, {
+      method: 'PATCH',
+      body: JSON.stringify(payload),
+    });
+  } else {
+    const created = await apiRequest('/restaurants', {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    });
+    restaurantId = created?.data?.id;
+  }
+
+  if (restaurantId) {
+    await syncAdminState();
+    await ensureRestaurantInfrastructure(restaurantId, formData.tables, formData.timeSlots);
+  }
+
+  await syncAdminState();
+  closeRestaurantModal();
+  showToast(existingRestaurant ? 'Restaurant updated.' : 'Restaurant created.');
+  addAuditLog(`${existingRestaurant ? 'Updated' : 'Created'} restaurant ${formData.name}`);
+}
+
+async function saveUser(event) {
+  event.preventDefault();
+
+  const id = document.getElementById('userId').value;
+  const roleLabelValue = document.getElementById('userRole').value;
+  const role = ROLE_VALUES[roleLabelValue];
+  const restaurantId = document.getElementById('userNode').value;
+  const payload = {
+    name: document.getElementById('userName').value.trim(),
+    email: document.getElementById('userEmail').value.trim().toLowerCase(),
+    role,
+    status: toBackendAccountStatus(document.getElementById('userStatus').value),
+    password_hash: 'password123',
+  };
+
+  let result;
+  if (id) {
+    result = await apiRequest(`/users/${id}`, {
+      method: 'PATCH',
+      body: JSON.stringify({
+        ...payload,
+        restaurant_id: role === 'staff' ? restaurantId : undefined,
+        employee_code: role === 'staff' ? `EMP-${Date.now().toString().slice(-4)}` : undefined,
+      }),
+    });
+  } else {
+    result = await apiRequest('/users', {
+      method: 'POST',
+      body: JSON.stringify({
+        ...payload,
+        restaurant_id: role === 'staff' ? restaurantId : undefined,
+        employee_code: role === 'staff' ? `EMP-${Date.now().toString().slice(-4)}` : undefined,
+        role_type: role === 'staff' ? 'service' : undefined,
+      }),
+    });
+  }
+
+  const savedUser = result?.data;
+  if (role === 'manager' && restaurantId && savedUser?.id) {
+    const restaurant = state.restaurants.find((item) => item.id === restaurantId);
+    if (restaurant) {
+      await apiRequest(`/restaurants/${restaurant.id}`, {
+        method: 'PATCH',
+        body: JSON.stringify({ manager_id: savedUser.id }),
+      });
+    }
+  }
+
+  await syncAdminState();
+  closeUserModal();
+  showToast(id ? 'User updated.' : 'User created.');
+  addAuditLog(`${id ? 'Updated' : 'Created'} user ${payload.email}`);
+}
+
+async function createReservationFromForm(baseForm, desiredStatus) {
+  const party = Number(baseForm.party);
+  const restaurantId = baseForm.restaurantId;
+  const dinerId = baseForm.dinerId;
+  const slot = state.timeslots.find((item) =>
+    item.restaurant_id === restaurantId
+    && item.slot_date === baseForm.date
+    && String(item.start_time).slice(0, 5) === baseForm.time);
+
+  if (!slot) {
+    throw new Error('No matching time slot exists for that restaurant/date/time');
+  }
+
+  const availableTableSlot = state.tableSlots.find((tableSlot) => {
+    if (tableSlot.slot_id !== slot.id || tableSlot.status !== 'available') {
+      return false;
     }
 
-    document.getElementById('view-' + tabName).style.display = 'block';
-    var targetNav = document.querySelector(`.nav-item[onclick*="${tabName}"]`);
-    if(targetNav) targetNav.classList.add('active');
+    const table = state.tables.find((item) => item.id === tableSlot.table_id);
+    return table && table.restaurant_id === restaurantId && Number(table.capacity) >= party;
+  });
 
-    var tbTitle = document.getElementById('topbar-title');
-    var tbSub = document.getElementById('topbar-sub');
-    if (tbTitle && TITLES[tabName]) {
-        tbTitle.innerHTML = TITLES[tabName][0];
-        tbSub.innerHTML = TITLES[tabName][1];
-    }
-    
-    localStorage.setItem('dt_active_tab_v5', tabName);
+  if (!availableTableSlot) {
+    throw new Error('No available table matches that reservation');
+  }
+
+  const created = await apiRequest('/reservations', {
+    method: 'POST',
+    body: JSON.stringify({
+      user_id: dinerId,
+      restaurant_id: restaurantId,
+      table_id: availableTableSlot.table_id,
+      slot_id: slot.id,
+      guest_count: party,
+    }),
+  });
+
+  const reservation = created?.data;
+  if (reservation?.id && desiredStatus && desiredStatus !== 'Booking') {
+    await apiRequest(`/reservations/${reservation.id}`, {
+      method: 'PATCH',
+      body: JSON.stringify({ reservation_status: toBackendReservationStatus(desiredStatus) }),
+    });
+  }
+
+  return reservation;
 }
 
-function showToast(message, type) {
-    var container = document.getElementById('toast-container');
-    if(!container) return;
-    var toast = document.createElement('div');
-    toast.className = 'toast toast-' + type;
-    toast.innerHTML = '<i class="fa-solid fa-circle-info"></i> ' + message;
-    container.appendChild(toast);
-    setTimeout(function() { toast.classList.add('show'); }, 10);
-    setTimeout(function() { toast.classList.remove('show'); setTimeout(function() { toast.remove(); }, 300); }, 3000);
+async function saveReservation(event) {
+  event.preventDefault();
+
+  const existingId = document.getElementById('bkgId').value;
+  const dinerName = document.getElementById('bkgDinerName').value.trim();
+  const enteredDinerId = document.getElementById('bkgDinerId').value.trim();
+  const restaurantId = document.getElementById('bkgRestaurant').value;
+  const date = document.getElementById('bkgDate').value;
+  const time = document.getElementById('bkgTime').value;
+  const party = document.getElementById('bkgParty').value;
+  const status = document.getElementById('bkgStatus').value;
+
+  const diner = enteredDinerId
+    ? state.users.find((user) => user.id === enteredDinerId)
+    : state.users.find((user) => user.role === 'diner' && user.name.toLowerCase() === dinerName.toLowerCase());
+
+  if (!diner) {
+    throw new Error('Use an existing diner ID or exact diner name');
+  }
+
+  const formValues = {
+    dinerId: diner.id,
+    restaurantId,
+    date,
+    time,
+    party,
+  };
+
+  if (!existingId) {
+    await createReservationFromForm(formValues, status);
+    await syncAdminState();
+    closeReservationModal();
+    showToast('Reservation created.');
+    addAuditLog(`Created reservation for ${diner.name}`);
+    return;
+  }
+
+  const existing = state.reservations.find((reservation) => reservation.id === existingId);
+  const currentDisplay = getReservationDisplay(existing);
+  const sameCoreDetails = currentDisplay.dinerId === diner.id
+    && currentDisplay.restaurantId === restaurantId
+    && currentDisplay.date === date
+    && currentDisplay.time === time
+    && Number(currentDisplay.party) === Number(party);
+
+  if (sameCoreDetails) {
+    await apiRequest(`/reservations/${existingId}`, {
+      method: 'PATCH',
+      body: JSON.stringify({ reservation_status: toBackendReservationStatus(status) }),
+    });
+  } else {
+    await createReservationFromForm(formValues, status);
+    await apiRequest(`/reservations/${existingId}`, {
+      method: 'PATCH',
+      body: JSON.stringify({ reservation_status: 'cancelled' }),
+    });
+  }
+
+  await syncAdminState();
+  closeReservationModal();
+  showToast('Reservation updated.');
+  addAuditLog(`Updated reservation ${existingId}`);
 }
+
+window.openRestaurantModal = function openRestaurantModal() {
+  document.getElementById('superForm').reset();
+  document.getElementById('resId').value = '';
+  document.getElementById('superModalTitle').textContent = 'Add Restaurant';
+  document.getElementById('superModal').style.display = 'flex';
+};
+
+window.closeRestaurantModal = function closeRestaurantModal() {
+  document.getElementById('superModal').style.display = 'none';
+};
+
+window.editRestaurant = function editRestaurant(id) {
+  const restaurant = state.restaurants.find((item) => item.id === id);
+  if (!restaurant) return;
+  const manager = state.users.find((item) => item.id === restaurant.manager_id);
+  const location = locationForRestaurant(restaurant);
+  const display = getRestaurantDisplay(restaurant);
+
+  document.getElementById('resId').value = restaurant.id;
+  document.getElementById('resName').value = restaurant.name || '';
+  document.getElementById('resCuisine').value = restaurant.cuisine_type || '';
+  document.getElementById('resTables').value = String(display.tables || restaurant.total_tables || 0);
+  document.getElementById('resAddress').value = location?.address || '';
+  document.getElementById('resCity').value = location?.city || '';
+  document.getElementById('resPincode').value = location?.pincode || '';
+  document.getElementById('resManagerName').value = manager?.name || '';
+  document.getElementById('resManagerEmail').value = manager?.email || '';
+  document.getElementById('resLicense').value = manager?.business_license_number || '';
+  document.getElementById('resTimeSlots').value = display.timeSlots === 'Not configured' ? '' : display.timeSlots.split(',')[0].replace('-', ' - ');
+  document.getElementById('resStatus').value = display.status;
+  document.getElementById('superModalTitle').textContent = 'View / Edit Restaurant';
+  document.getElementById('superModal').style.display = 'flex';
+};
+
+window.deleteRestaurant = function deleteRestaurant(id, name) {
+  showConfirmModal(
+    'Delete Restaurant',
+    `Delete ${name}? This removes it from the shared platform data.`,
+    async () => {
+      await apiRequest(`/restaurants/${id}`, { method: 'DELETE' });
+      await syncAdminState();
+      showToast('Restaurant deleted.', 'error');
+      addAuditLog(`Deleted restaurant ${name}`);
+    },
+  );
+};
+
+window.openUserModal = function openUserModal() {
+  document.getElementById('userForm').reset();
+  document.getElementById('userId').value = '';
+  document.getElementById('userModalTitle').textContent = 'Add User';
+  ensureRestaurantSelects();
+  toggleRestaurantField();
+  document.getElementById('userModal').style.display = 'flex';
+};
+
+window.closeUserModal = function closeUserModal() {
+  document.getElementById('userModal').style.display = 'none';
+};
+
+window.toggleRestaurantField = function toggleRestaurantField() {
+  const role = document.getElementById('userRole').value;
+  const group = document.getElementById('userRestaurantGroup');
+  ensureRestaurantSelects();
+  group.style.display = role === 'Diner' ? 'none' : 'block';
+};
+
+window.editUser = function editUser(id) {
+  const user = state.users.find((item) => item.id === id);
+  if (!user) return;
+  const display = getUserDisplay(user);
+  ensureRestaurantSelects();
+  document.getElementById('userId').value = user.id;
+  document.getElementById('userName').value = user.name || '';
+  document.getElementById('userEmail').value = user.email || '';
+  document.getElementById('userRole').value = display.role;
+  toggleRestaurantField();
+  document.getElementById('userNode').value = display.restaurant_id || '';
+  document.getElementById('userStatus').value = display.status;
+  document.getElementById('userModalTitle').textContent = 'View / Edit User';
+  document.getElementById('userModal').style.display = 'flex';
+};
+
+window.deleteUser = function deleteUser(id, email) {
+  showConfirmModal(
+    'Delete Account',
+    `Delete the account for ${email}? This action is permanent.`,
+    async () => {
+      await apiRequest(`/users/${id}`, { method: 'DELETE' });
+      await syncAdminState();
+      showToast('User deleted.', 'error');
+      addAuditLog(`Deleted user ${email}`);
+    },
+  );
+};
+
+window.openReservationModal = function openReservationModal() {
+  document.getElementById('reservationForm').reset();
+  document.getElementById('bkgId').value = '';
+  document.getElementById('reservationModalTitle').textContent = 'Add Reservation';
+  ensureRestaurantSelects();
+  document.getElementById('bkgDate').min = new Date().toISOString().split('T')[0];
+  document.getElementById('reservationModal').style.display = 'flex';
+};
+
+window.closeReservationModal = function closeReservationModal() {
+  document.getElementById('reservationModal').style.display = 'none';
+};
+
+window.editReservation = function editReservation(id) {
+  const reservation = state.reservations.find((item) => item.id === id);
+  if (!reservation) return;
+  const display = getReservationDisplay(reservation);
+  ensureRestaurantSelects();
+  document.getElementById('bkgId').value = reservation.id;
+  document.getElementById('bkgDinerName').value = display.dinerName;
+  document.getElementById('bkgDinerId').value = display.dinerId;
+  document.getElementById('bkgRestaurant').value = display.restaurantId;
+  document.getElementById('bkgDate').value = display.date;
+  document.getElementById('bkgTime').value = display.time;
+  document.getElementById('bkgParty').value = String(display.party);
+  document.getElementById('bkgStatus').value = display.status === 'Completed' ? 'Customer Check-In' : display.status;
+  document.getElementById('reservationModalTitle').textContent = 'View / Edit Reservation';
+  document.getElementById('reservationModal').style.display = 'flex';
+};
+
+window.deleteReservation = function deleteReservation(id, dinerName) {
+  showConfirmModal(
+    'Delete Reservation',
+    `Permanently delete the reservation for ${dinerName}? This cannot be undone.`,
+    async () => {
+      await apiRequest(`/reservations/${id}`, {
+        method: 'DELETE',
+      });
+      await syncAdminState();
+      showToast('Reservation deleted.', 'error');
+      addAuditLog(`Deleted reservation ${id}`);
+    },
+  );
+};
+
+window.changeSuperPassword = function changeSuperPassword(event) {
+  event.preventDefault();
+  const current = document.getElementById('currentMasterPass').value;
+  const next = document.getElementById('newMasterPass').value;
+  const confirm = document.getElementById('confirmNewMasterPass').value;
+  const msg = document.getElementById('passChangeMsg');
+  const profile = readJson('super_admin_profile', null);
+
+  if (next.length < 6) {
+    msg.textContent = 'New password must be at least 6 characters.';
+    msg.style.color = '#C62828';
+    msg.style.display = 'inline';
+    return;
+  }
+
+  if (next !== confirm) {
+    msg.textContent = 'Password confirmation does not match.';
+    msg.style.color = '#C62828';
+    msg.style.display = 'inline';
+    return;
+  }
+
+  apiRequest('/super-admin/password', {
+    method: 'PATCH',
+    body: JSON.stringify({
+      user_id: profile?.id || '',
+      current_password: current,
+      new_password: next,
+    }),
+  })
+    .then(() => {
+      msg.textContent = 'Security key updated.';
+      msg.style.color = '#2E7D32';
+      msg.style.display = 'inline';
+      document.getElementById('changePasswordForm').reset();
+      addAuditLog('Updated super user security key');
+    })
+    .catch((error) => {
+      msg.textContent = error.message || 'Unable to update password.';
+      msg.style.color = '#C62828';
+      msg.style.display = 'inline';
+    });
+};
+
+window.sendBroadcast = async function sendBroadcast(event) {
+  event.preventDefault();
+  const form = event.target;
+  const audience = form.querySelector('select').value;
+  const message = form.querySelector('textarea').value.trim();
+  const roleMap = {
+    diners: 'diner',
+    managers: 'manager',
+    staff: 'staff',
+  };
+
+  await apiRequest('/notifications/broadcast', {
+    method: 'POST',
+    body: JSON.stringify({
+      role: roleMap[audience],
+      message,
+      type: 'broadcast',
+    }),
+  });
+
+  await syncAdminState();
+  form.reset();
+  showToast('Broadcast message sent successfully.');
+  addAuditLog(`Sent broadcast to ${audience}`);
+};
+
+window.logoutSuperAdmin = function logoutSuperAdmin() {
+  sessionStorage.clear();
+  window.location.href = 'login.html';
+};
+
+window.switchTab = function switchTab(tabName) {
+  document.querySelectorAll('.dashboard-view').forEach((view) => {
+    view.style.display = 'none';
+  });
+  document.querySelectorAll('.sidebar .nav-item').forEach((item) => {
+    item.classList.remove('active');
+  });
+
+  const view = document.getElementById(`view-${tabName}`);
+  if (view) {
+    view.style.display = 'block';
+  }
+
+  const nav = document.getElementById(`nav-${tabName}`);
+  if (nav) {
+    nav.classList.add('active');
+  }
+
+  writeJson(STORAGE_KEYS.activeTab, tabName);
+};
+
+function setupForms() {
+  document.getElementById('superForm')?.addEventListener('submit', (event) => {
+    saveRestaurant(event).catch((error) => showToast(error.message, 'error'));
+  });
+  document.getElementById('userForm')?.addEventListener('submit', (event) => {
+    saveUser(event).catch((error) => showToast(error.message, 'error'));
+  });
+  document.getElementById('reservationForm')?.addEventListener('submit', (event) => {
+    saveReservation(event).catch((error) => showToast(error.message, 'error'));
+  });
+}
+
+window.onload = async function onLoad() {
+  setupForms();
+  getAuditLog();
+  renderAuditLogs();
+  ensureRestaurantSelects();
+
+  const resSearchDate = document.getElementById('resSearchDate');
+  if (resSearchDate) {
+    resSearchDate.value = new Date().toLocaleDateString('en-CA');
+  }
+
+  try {
+    await syncAdminState();
+  } catch (error) {
+    showToast(error.message || 'Unable to sync admin dashboard.', 'error');
+  }
+
+  const savedTab = readJson(STORAGE_KEYS.activeTab, 'dashboard');
+  switchTab(savedTab);
+  startAutoRefresh();
+};

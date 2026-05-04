@@ -1,4 +1,24 @@
 // ---- Toast ----
+const API_BASE = (window.DINETIME_CONFIG && window.DINETIME_CONFIG.API_BASE) || 'http://localhost:3000';
+
+async function apiRequest(path, options = {}, role = 'manager') {
+    const response = await fetch(`${API_BASE}${path}`, {
+        ...options,
+        headers: {
+            'Content-Type': 'application/json',
+            role,
+            ...(options.headers || {}),
+        },
+    });
+
+    if (!response.ok) {
+        throw new Error(`Request failed (${response.status})`);
+    }
+
+    const text = await response.text();
+    return text ? JSON.parse(text) : null;
+}
+
 function showToast(message, type = 'success') {
     const container = document.getElementById('toast-container');
     const toast = document.createElement('div');
@@ -45,18 +65,23 @@ forgotModal.addEventListener('click', (e) => {
     }
 });
 
-document.getElementById('forgot-password-form').addEventListener('submit', (e) => {
+document.getElementById('forgot-password-form').addEventListener('submit', async (e) => {
     e.preventDefault();
     const resetEmail = document.getElementById('reset-email').value.trim();
     if (!resetEmail) return;
-    
+
     try {
-        const raw = JSON.parse(localStorage.getItem('dinetimeData_v2')) || { users: {} };
-        if (!raw.users[resetEmail.toLowerCase()] && resetEmail.toLowerCase() !== "rahul.sharma@spicegarden.com" && resetEmail.toLowerCase() !== "manager@sushimaster.com") {
+        const usersRes = await apiRequest('/users', {}, 'manager');
+        const users = usersRes?.data || [];
+        const exists = users.some((u) => u.role === 'manager' && u.email.toLowerCase() === resetEmail.toLowerCase());
+        if (!exists) {
             showToast('Email address not found in our system.', 'error');
             return;
         }
-    } catch(err) {}
+    } catch (_err) {
+        showToast('Unable to validate email right now. Please try again.', 'error');
+        return;
+    }
 
     document.getElementById('reset-success-msg').classList.remove('hidden');
     setTimeout(() => {
@@ -67,7 +92,7 @@ document.getElementById('forgot-password-form').addEventListener('submit', (e) =
 });
 
 // ---- Form submit ----
-document.getElementById('login-form').addEventListener('submit', (e) => {
+document.getElementById('login-form').addEventListener('submit', async (e) => {
     e.preventDefault();
 
     const emailVal    = document.getElementById('email-input').value.trim();
@@ -98,16 +123,21 @@ document.getElementById('login-form').addEventListener('submit', (e) => {
     }
     if (!valid) return;
 
-    // Simulate credential check
-    const isMockUser = (emailVal.toLowerCase() === "rahul.sharma@spicegarden.com" && passwordVal === "password123") ||
-                       (emailVal.toLowerCase() === "manager@sushimaster.com" && passwordVal === "password123");
-    
-    // For registered users, we cross-reference stored custom passwords natively
-    const raw = StorageManager.getRawData();
-    const user = raw.users[emailVal.toLowerCase()];
-    const isRegisteredUser = user && (user.password === passwordVal);
+    let isRegisteredUser = false;
+    try {
+        const usersRes = await apiRequest('/users', {}, 'manager');
+        const users = usersRes?.data || [];
+        const user = users.find((u) => u.role === 'manager' && u.email.toLowerCase() === emailVal.toLowerCase());
+        isRegisteredUser = !!user && user.password_hash === passwordVal;
+    } catch (_err) {
+        pwInput.classList.add('input-error');
+        passwordErr.textContent = 'Unable to reach server. Please try again.';
+        passwordErr.classList.add('show');
+        showToast('Login failed. Server is unavailable.', 'error');
+        return;
+    }
 
-    if (!isMockUser && !isRegisteredUser) {
+    if (!isRegisteredUser) {
         pwInput.classList.add('input-error');
         passwordErr.textContent = 'Invalid email or password. Please try again.';
         passwordErr.classList.add('show');
@@ -125,12 +155,10 @@ document.getElementById('login-form').addEventListener('submit', (e) => {
     setTimeout(() => { window.location.href = 'index.html'; }, 1200);
 });
 
-// Demo Login Helper
+// Demo helper kept but without hardcoded credentials
 document.getElementById('demo-login-link')?.addEventListener('click', (e) => {
     e.preventDefault();
-    document.getElementById('email-input').value = "rahul.sharma@spicegarden.com";
-    document.getElementById('password-input').value = "password123";
-    showToast('Demo credentials autofilled! Click Login to proceed.', 'info');
+    showToast('Use a registered manager account to log in.', 'info');
 });
 
 // Social Login Simulation

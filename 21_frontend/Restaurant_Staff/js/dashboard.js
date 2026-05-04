@@ -1,11 +1,29 @@
-// Mock data for 20 tables
 let tableList = [];
 let currentFilter = 'All';
 let editingTableId = null;
+const API_BASE = (window.DINETIME_CONFIG && window.DINETIME_CONFIG.API_BASE) || 'http://localhost:3000';
+
+async function apiRequest(path, options = {}, role = 'staff') {
+    const response = await fetch(`${API_BASE}${path}`, {
+        ...options,
+        headers: {
+            'Content-Type': 'application/json',
+            role,
+            ...(options.headers || {}),
+        },
+    });
+
+    if (!response.ok) {
+        throw new Error(`Request failed (${response.status})`);
+    }
+
+    const text = await response.text();
+    return text ? JSON.parse(text) : null;
+}
 
 // Auth Guard
 function checkAuth() {
-    const session = localStorage.getItem('dinetime_session');
+    const session = sessionStorage.getItem('dinetime_session');
     if (!session) {
         window.location.href = 'login.html';
         return false;
@@ -14,10 +32,10 @@ function checkAuth() {
 }
 
 // Initialize the dashboard
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
     if (!checkAuth()) return;
     loadProfileName();
-    loadTablesFromStorage();
+    await loadTablesFromStorage();
     setupEventListeners();
     updateStats();
     renderTables();
@@ -25,7 +43,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 // Load saved profile name from storage
 function loadProfileName() {
-    const saved = localStorage.getItem('dinetime_profile');
+    const saved = sessionStorage.getItem('dinetime_profile');
     if (saved) {
         const data = JSON.parse(saved);
         if (data.name) {
@@ -35,39 +53,46 @@ function loadProfileName() {
     }
 }
 
-function loadTablesFromStorage() {
-    const storedData = localStorage.getItem('dinetime_tables');
-    if (storedData) {
-        tableList = JSON.parse(storedData);
-    } else {
-        tableList = [
-            { id: 1, seats: 2, status: 'Available' },
-            { id: 2, seats: 4, status: 'Occupied', guests: 2, time: '15 min ago' },
-            { id: 3, seats: 4, status: 'Available' },
-            { id: 4, seats: 6, status: 'Reserved' },
-            { id: 5, seats: 8, status: 'Available' },
-            { id: 6, seats: 4, status: 'Occupied', guests: 3, time: '28 min ago' },
-            { id: 7, seats: 6, status: 'Reserved' },
-            { id: 8, seats: 4, status: 'Available' },
-            { id: 9, seats: 2, status: 'Occupied', guests: 2, time: '42 min ago' },
-            { id: 10, seats: 4, status: 'Available' },
-            { id: 11, seats: 6, status: 'Occupied', guests: 5, time: '12 min ago' },
-            { id: 12, seats: 2, status: 'Available' },
-            { id: 13, seats: 4, status: 'Reserved' },
-            { id: 14, seats: 6, status: 'Available' },
-            { id: 15, seats: 2, status: 'Occupied', guests: 2, time: '8 min ago' },
-            { id: 16, seats: 8, status: 'Reserved' },
-            { id: 17, seats: 4, status: 'Available' },
-            { id: 18, seats: 6, status: 'Occupied', guests: 6, time: '35 min ago' },
-            { id: 19, seats: 2, status: 'Available' },
-            { id: 20, seats: 4, status: 'Occupied', guests: 3, time: '19 min ago' }
-        ];
-        saveTablesToStorage();
-    }
+async function loadTablesFromStorage() {
+    const [tablesRes, tableSlotsRes] = await Promise.all([
+        apiRequest('/tables', {}, 'staff'),
+        apiRequest('/tableslots', {}, 'staff'),
+    ]);
+
+    const session = JSON.parse(sessionStorage.getItem('dinetime_session') || '{}');
+    const restaurantId = session.restaurant_id || '';
+
+    const statusRank = { occupied: 3, reserved: 2, available: 1 };
+    const statusByTable = {};
+
+    const filteredTables = (tablesRes?.data || []).filter((table) =>
+        !restaurantId || table.restaurant_id === restaurantId,
+    );
+
+    (tableSlotsRes?.data || []).forEach((slot) => {
+        const current = statusByTable[slot.table_id] || 'available';
+        const next = slot.status || 'available';
+        if ((statusRank[next] || 0) >= (statusRank[current] || 0)) {
+            statusByTable[slot.table_id] = next;
+        }
+    });
+
+    const statusMap = {
+        occupied: 'Occupied',
+        reserved: 'Reserved',
+        available: 'Available',
+    };
+
+    tableList = filteredTables.map((table) => ({
+        id: table.table_number,
+        seats: table.capacity,
+        table_id: table.id,
+        status: statusMap[statusByTable[table.id] || 'available'] || 'Available',
+    }));
 }
 
 function saveTablesToStorage() {
-    localStorage.setItem('dinetime_tables', JSON.stringify(tableList));
+    return;
 }
 
 // Update the summary counts based on the current tableList
@@ -112,7 +137,7 @@ function setupEventListeners() {
     }
 
     if (saveBtn) {
-        saveBtn.addEventListener('click', () => {
+        saveBtn.addEventListener('click', async () => {
             if (editingTableId === null) return;
             
             const newStatus = document.getElementById('new-status-select').value;
@@ -120,11 +145,26 @@ function setupEventListeners() {
             
             if (tableIndex !== -1) {
                 tableList[tableIndex].status = newStatus;
-                
-                // Assign mock guests/time if manually switched to Occupied
-                if (newStatus === 'Occupied' && !tableList[tableIndex].guests) {
-                   tableList[tableIndex].guests = Math.max(1, Math.floor(tableList[tableIndex].seats / 2));
-                   tableList[tableIndex].time = 'Just now';
+
+                const slotStatusMap = {
+                    Occupied: 'occupied',
+                    Reserved: 'reserved',
+                    Available: 'available',
+                };
+                try {
+                    const slotsRes = await apiRequest('/tableslots', {}, 'staff');
+                    const slot = (slotsRes?.data || []).find((s) => s.table_id === tableList[tableIndex].table_id);
+                    if (slot) {
+                        await apiRequest('/tableslots/status', {
+                            method: 'PATCH',
+                            body: JSON.stringify({
+                                table_id: slot.table_id,
+                                slot_id: slot.slot_id,
+                                status: slotStatusMap[newStatus] || 'available',
+                            }),
+                        }, 'staff');
+                    }
+                } catch (_e) {
                 }
                 
                 saveTablesToStorage();

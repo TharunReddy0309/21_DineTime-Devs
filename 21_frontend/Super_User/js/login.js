@@ -1,32 +1,44 @@
 
 document.addEventListener('DOMContentLoaded', function() {
-    
-    if (!localStorage.getItem('admin_email')) {
-        localStorage.setItem('admin_email', 'admin@dinetime.com');
-    }
-    if (!localStorage.getItem('admin_password')) {
-        localStorage.setItem('admin_password', 'admin123');
-    }
-
+    const API_BASE = (window.DINETIME_CONFIG && window.DINETIME_CONFIG.API_BASE) || 'http://localhost:3000';
     const loginForm = document.getElementById('superLoginForm');
     const errorMsg = document.getElementById('login-error-msg');
 
     if (loginForm) {
-        loginForm.addEventListener('submit', function(e) {
+        loginForm.addEventListener('submit', async function(e) {
             e.preventDefault();
 
-            const emailInput = document.getElementById('superEmail').value;
-            const passInput = document.getElementById('superPassword').value;
+            const emailInput = document.getElementById('superEmail').value.trim().toLowerCase();
+            const passInput = document.getElementById('superPassword').value.trim();
 
-            const masterEmail = localStorage.getItem('admin_email');
-            const masterPass = localStorage.getItem('admin_password');
+            try {
+                const response = await fetch(`${API_BASE}/super-admin/login`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        email: emailInput,
+                        password: passInput,
+                    }),
+                });
 
-            if (emailInput === masterEmail && passInput === masterPass) {
-                // Successful Auth
-                localStorage.setItem('super_auth_status', 'true');
+                if (!response.ok) {
+                    throw new Error('Invalid credentials');
+                }
+
+                const payload = await response.json();
+                const user = payload?.data;
+
+                sessionStorage.setItem('super_auth_status', 'true');
+                sessionStorage.setItem('super_admin_profile', JSON.stringify({
+                    id: user.id,
+                    name: user.name,
+                    email: user.email,
+                    role: user.role,
+                }));
                 window.location.href = 'super-dashboard.html';
-            } else {
-                // Failed Auth
+            } catch (error) {
                 showError();
             }
         });
@@ -35,10 +47,9 @@ document.addEventListener('DOMContentLoaded', function() {
     function showError() {
         if (!errorMsg) return;
         errorMsg.classList.remove('hidden');
-        
-        // Remove and re-add class to trigger animation again
+
         errorMsg.style.animation = 'none';
-        errorMsg.offsetHeight; /* trigger reflow */
+        errorMsg.offsetHeight;
         errorMsg.style.animation = null;
 
         setTimeout(function() {

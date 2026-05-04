@@ -1,4 +1,5 @@
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
+    await StorageManager.ready();
     // ---- Toast System (Duplicated logic for multi-page simplicity, ideal to move to utils.js) ----
     const toastContainer = document.getElementById('toast-container');
     window.showToast = function(message, type = 'success') {
@@ -37,8 +38,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const allRes = StorageManager.getReservations();
         
         // 1. Calculate Stats (Today's Total)
-        const now = new Date();
-        const todayStr = now.toISOString().split('T')[0];
+        const todayStr = new Date().toLocaleDateString('en-CA');
 
         const todayRes = allRes.filter(r => r.date === todayStr);
 
@@ -216,3 +216,4 @@ document.addEventListener('DOMContentLoaded', () => {
     // Initial render
     renderReservations();
 });
+

@@ -2,15 +2,36 @@
 let bookingList = [];
 let expandedBookingIds = new Set();
 let currentStaffRestaurant = 'Spice Garden';
+let currentStaffRestaurantId = '';
+let refreshTimer = null;
+const API_BASE = (window.DINETIME_CONFIG && window.DINETIME_CONFIG.API_BASE) || 'http://localhost:3000';
 let filters = {
     search: '',
-    date: new Date().toISOString().split('T')[0], // Default to current date
+    date: new Date().toLocaleDateString('en-CA'), // Default to local current date (YYYY-MM-DD)
     time: 'All'         // Default to all times
 };
 
+async function apiRequest(path, options = {}, role = 'staff') {
+    const response = await fetch(`${API_BASE}${path}`, {
+        ...options,
+        headers: {
+            'Content-Type': 'application/json',
+            role,
+            ...(options.headers || {}),
+        },
+    });
+
+    if (!response.ok) {
+        throw new Error(`Request failed (${response.status})`);
+    }
+
+    const text = await response.text();
+    return text ? JSON.parse(text) : null;
+}
+
 // Auth Guard
 function checkAuth() {
-    const session = localStorage.getItem('dinetime_session');
+    const session = sessionStorage.getItem('dinetime_session');
     if (!session) {
         window.location.href = 'login.html';
         return false;
@@ -18,6 +39,7 @@ function checkAuth() {
     const sessionData = JSON.parse(session);
     if (sessionData && sessionData.restaurant) {
         currentStaffRestaurant = sessionData.restaurant;
+        currentStaffRestaurantId = sessionData.restaurant_id || '';
         // Dynamically update the header text
         const brandTextEl = document.querySelector('.brand-text span');
         if (brandTextEl) {
@@ -28,11 +50,16 @@ function checkAuth() {
 }
 
 // Initialize app when DOM is fully loaded
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
     if (!checkAuth()) return;
     loadProfileName();
-    loadBookingsFromStorage();
-    resolvePastBookings(); // Clean up past dates on start
+    try {
+        await loadBookingsFromStorage();
+        await resolvePastBookings(); // Clean up past dates on start
+    } catch (_error) {
+        bookingList = [];
+        showToast('Unable to load reservations from backend.', 'error');
+    }
     setupEventListeners();
     
     // Set initial UI states for filters
@@ -43,11 +70,33 @@ document.addEventListener('DOMContentLoaded', () => {
     
     updateStats();
     renderBookings();
+    startAutoRefresh();
 });
+
+function startAutoRefresh() {
+    if (refreshTimer) return;
+    refreshTimer = setInterval(async () => {
+        try {
+            await loadBookingsFromStorage();
+            updateStats();
+            renderBookings();
+        } catch (_e) {
+        }
+    }, 15000);
+
+    window.addEventListener('focus', async () => {
+        try {
+            await loadBookingsFromStorage();
+            updateStats();
+            renderBookings();
+        } catch (_e) {
+        }
+    });
+}
 
 // Load saved profile name from storage
 function loadProfileName() {
-    const saved = localStorage.getItem('dinetime_profile');
+    const saved = sessionStorage.getItem('dinetime_profile');
     if (saved) {
         const data = JSON.parse(saved);
         if (data.name) {
@@ -57,82 +106,106 @@ function loadProfileName() {
     }
 }
 
-// Load booking items from local storage, or insert default mock data if empty
-function loadBookingsFromStorage() {
-    let shouldSeed = !localStorage.getItem('dinetime_bookings_seeded');
-    const storedData = localStorage.getItem('dinetime_bookings_v5'); 
+// Load booking items from backend APIs
+async function loadBookingsFromStorage() {
+    const reservationPath = currentStaffRestaurantId
+        ? `/reservations?restaurant_id=${currentStaffRestaurantId}`
+        : '/reservations';
+    const [reservationsRes, slotsRes, tablesRes, usersRes] = await Promise.all([
+        apiRequest(reservationPath, {}, 'staff'),
+        apiRequest('/timeslots', {}, 'staff'),
+        apiRequest('/tables', {}, 'staff'),
+        apiRequest('/users', {}, 'manager'),
+    ]);
 
-    if (storedData) {
-        bookingList = JSON.parse(storedData);
-    } else {
-        bookingList = [];
-    }
+    const slots = slotsRes?.data || [];
+    const tables = tablesRes?.data || [];
+    const users = usersRes?.data || [];
 
-    if (shouldSeed) {
-        const today = new Date().toISOString().split('T')[0];
-        const yesterday = new Date(Date.now() - 86400000).toISOString().split('T')[0];
-        const tomorrow = new Date(Date.now() + 86400000).toISOString().split('T')[0];
+    const slotMap = {};
+    slots.forEach((slot) => { slotMap[slot.id] = slot; });
+    const tableMap = {};
+    tables.forEach((table) => { tableMap[table.id] = table; });
+    const userMap = {};
+    users.forEach((user) => { userMap[user.id] = user; });
 
-        const mockData = [
-            // --- YESTERDAY (6 Reservations) ---
-            { id: 'DT-10001', name: 'Amit Verma', phone: '9876500001', date: yesterday, time: '7:00 PM', guests: 2, email: 'amit@example.com', table: 'Table 1', status: 'Checked-In' },
-            { id: 'DT-10002', name: 'Sania Mirza', phone: '9876500002', date: yesterday, time: '7:30 PM', guests: 4, email: 'sania@example.com', table: 'Table 2', status: 'No-Show' },
-            { id: 'DT-10003', name: 'Peter Parker', phone: '9876500003', date: yesterday, time: '8:00 PM', guests: 2, email: 'peter@example.com', table: 'Table 3', status: 'Checked-In' },
-            { id: 'DT-10004', name: 'Ananya Roy', phone: '9876500004', date: yesterday, time: '8:30 PM', guests: 6, email: 'ananya@example.com', table: 'Table 4', status: 'Checked-In' },
-            { id: 'DT-10005', name: 'Rohan Khanna', phone: '9876500005', date: yesterday, time: '9:00 PM', guests: 2, email: 'rohan@example.com', table: 'Table 5', status: 'No-Show' },
-            { id: 'DT-10006', name: 'Sneha Nair', phone: '9876500006', date: yesterday, time: '9:30 PM', guests: 4, email: 'sneha@example.com', table: 'Table 6', status: 'Checked-In' },
+    const statusMap = {
+        reserved: 'Upcoming',
+        checked_in: 'Checked-In',
+        completed: 'Checked-In',
+        cancelled: 'No-Show',
+    };
 
-            // --- TODAY (6 Reservations) ---
-            { id: 'DT-20001', name: 'Rahul Sharma', phone: '9876543210', date: today, time: '7:00 PM', guests: 4, email: 'rahul@example.com', table: 'Table 12', status: 'Checked-In' },
-            { id: 'DT-20002', name: 'Priya Verma', phone: '9876543211', date: today, time: '7:15 PM', guests: 2, email: 'priya@example.com', table: 'Table 14', status: 'Upcoming' },
-            { id: 'DT-20003', name: 'Arjun Mehta', phone: '9876543212', date: today, time: '7:45 PM', guests: 3, email: 'arjun@example.com', table: 'Table 15', status: 'No-Show' },
-            { id: 'DT-20004', name: 'Sanjay Gupta', phone: '9876543213', date: today, time: '8:00 PM', guests: 4, email: 'sanjay@example.com', table: 'Table 16', status: 'Upcoming' },
-            { id: 'DT-20005', name: 'Lakshmi Iyer', phone: '9876543214', date: today, time: '8:30 PM', guests: 2, email: 'lakshmi@example.com', table: 'Table 17', status: 'Checked-In' },
-            { id: 'DT-20006', name: 'Snehal Gupta', phone: '9876543215', date: today, time: '9:00 PM', guests: 5, email: 'snehal@example.com', table: 'Table 18', status: 'Upcoming' },
+    const rawReservations = (reservationsRes?.data || []).filter((reservation) =>
+        !currentStaffRestaurantId || reservation.restaurant_id === currentStaffRestaurantId,
+    );
 
-            // --- TOMORROW (6 Reservations) ---
-            { id: 'DT-30001', name: 'Vikram Singh', phone: '9876511111', date: tomorrow, time: '6:00 PM', guests: 2, email: 'vikram@example.com', table: 'Table 7', status: 'Upcoming' },
-            { id: 'DT-30002', name: 'Meera Reddy', phone: '9876511112', date: tomorrow, time: '6:30 PM', guests: 4, email: 'meera@example.com', table: 'Table 8', status: 'Upcoming' },
-            { id: 'DT-10015', name: 'Naveen Kumar', phone: '9876511113', date: tomorrow, time: '7:00 PM', guests: 6, email: 'naveen@example.com', table: 'Table 9', status: 'Upcoming' },
-            { id: 'DT-10016', name: 'Simran Kaur',  phone: '9876511114', date: tomorrow, time: '7:30 PM', guests: 2, email: 'simran@example.com', table: 'Table 10', status: 'Upcoming' },
-            { id: 'DT-10017', name: 'Vishal Sharma',  phone: '9876511115', date: tomorrow, time: '8:00 PM', guests: 3, email: 'vishal@example.com', table: 'Table 11', status: 'Upcoming' },
-            { id: 'DT-10018', name: 'Deepa Menon',   phone: '9876511116', date: tomorrow, time: '8:30 PM', guests: 8, email: 'deepa@example.com', table: 'Table 13', status: 'Upcoming' }
-        ];
-        // Distribute the original mock data across different restaurants
-        const rests = ['Spice Garden', 'Sushi Master', 'Burger Joint'];
-        const mockDataWithRests = mockData.map((b, i) => ({
-            ...b,
-            restaurant: rests[i % rests.length]
-        }));
-        
-        bookingList = bookingList.concat(mockDataWithRests);
-        localStorage.setItem('dinetime_bookings_seeded', 'true');
-        saveBookingsToStorage();
-    } else {
-        // Retro-actively distribute any existing records that lack the restaurant field.
-        let needsUpdate = false;
-        const rests = ['Spice Garden', 'Sushi Master', 'Burger Joint'];
-        bookingList = bookingList.map((b, i) => {
-            if (!b.restaurant) {
-                needsUpdate = true;
-                return { ...b, restaurant: rests[i % rests.length] };
-            }
-            return b;
+    bookingList = rawReservations.map((reservation) => {
+        const slot = slotMap[reservation.slot_id];
+        const table = tableMap[reservation.table_id];
+        const user = userMap[reservation.user_id];
+        const statusValue = reservation.reservation_status || reservation.status;
+        return {
+            id: reservation.id,
+            reservation_id: reservation.id,
+            user_id: reservation.user_id,
+            restaurant_id: reservation.restaurant_id,
+            name: user?.name || `Guest ${reservation.user_id.slice(-4)}`,
+            phone: user?.phone || '-',
+            email: user?.email || 'guest@example.com',
+            date: slot?.slot_date || slot?.date || new Date().toLocaleDateString('en-CA'),
+            time: slot?.start_time || '19:00',
+            guests: reservation.guest_count,
+            table: table ? `Table ${table.table_number}` : 'Table',
+            table_id: reservation.table_id,
+            slot_id: reservation.slot_id,
+            status: statusMap[statusValue] || 'Upcoming',
+            restaurant: currentStaffRestaurant,
+        };
+    });
+
+    // Dynamically populate Walk-In Table dropdown
+    const walkinTableSelect = document.getElementById('walkin-table');
+    if (walkinTableSelect) {
+        const currentVal = walkinTableSelect.value;
+        walkinTableSelect.innerHTML = '<option value="">Select Table...</option>';
+        const restaurantTables = tables
+            .filter(t => !currentStaffRestaurantId || t.restaurant_id === currentStaffRestaurantId)
+            .sort((a, b) => Number(a.table_number) - Number(b.table_number));
+            
+        restaurantTables.forEach(t => {
+            const option = document.createElement('option');
+            option.value = `Table ${t.table_number}`;
+            option.textContent = `Table ${t.table_number} (${t.capacity} Seater)`;
+            walkinTableSelect.appendChild(option);
         });
-        if (needsUpdate) {
-            saveBookingsToStorage();
-        }
+        if (currentVal) walkinTableSelect.value = currentVal;
     }
 }
 
 // Save the current bookingList back to local storage
-function saveBookingsToStorage() {
-    localStorage.setItem('dinetime_bookings_v5', JSON.stringify(bookingList));
+async function saveBookingsToStorage() {
+    const statusMap = {
+        'Upcoming': 'reserved',
+        'Checked-In': 'checked_in',
+        'No-Show': 'cancelled',
+    };
+
+    await Promise.all(
+        bookingList
+            .filter((booking) => booking.reservation_id)
+            .map((booking) =>
+                apiRequest(`/reservations/${booking.reservation_id}`, {
+                    method: 'PATCH',
+                    body: JSON.stringify({ reservation_status: statusMap[booking.status] || 'reserved' }),
+                }, 'staff'),
+            ),
+    );
 }
 
 // Logic to "heal" past days - Upcoming should become No-Show
-function resolvePastBookings() {
-    const today = new Date().toISOString().split('T')[0];
+async function resolvePastBookings() {
+    const today = new Date().toLocaleDateString('en-CA');
     let changed = false;
 
     bookingList.forEach(booking => {
@@ -143,27 +216,112 @@ function resolvePastBookings() {
     });
 
     if (changed) {
-        saveBookingsToStorage();
+        await saveBookingsToStorage();
         updateStats();
     }
 }
 
 // Logic to update a table status in the central dinetime_tables storage
-function updateTableStatus(tableId, newStatus, guestsCount = 0) {
-    const storedTables = localStorage.getItem('dinetime_tables');
-    if (!storedTables) return;
-    
-    let tableList = JSON.parse(storedTables);
-    const tableIndex = tableList.findIndex(t => t.id === tableId);
-    
-    if (tableIndex !== -1) {
-        tableList[tableIndex].status = newStatus;
-        if (newStatus === 'Occupied') {
-            tableList[tableIndex].guests = guestsCount;
-            tableList[tableIndex].time = 'Just now';
-        }
-        localStorage.setItem('dinetime_tables', JSON.stringify(tableList));
+function updateTableStatus(_tableId, _newStatus, _guestsCount = 0) {
+}
+
+function toMinutes(timeText) {
+    const [hRaw, mRaw] = (timeText || '00:00').split(':');
+    return (parseInt(hRaw, 10) * 60) + parseInt(mRaw, 10);
+}
+
+async function ensureWalkinDiner(name, phone) {
+    const usersRes = await apiRequest('/users', {}, 'manager');
+    const users = usersRes?.data || [];
+
+    const existing = users.find((u) =>
+        u.role === 'diner' &&
+        (u.phone === phone || (u.email || '').toLowerCase() === `walkin.${phone}@dinetime.local`),
+    );
+    if (existing) {
+        return existing;
     }
+
+    const locationId = (users.find((u) => u.location_id) || {}).location_id || 'loc_blr_1';
+    const created = await apiRequest('/users', {
+        method: 'POST',
+        body: JSON.stringify({
+            name,
+            email: `walkin.${phone}@dinetime.local`,
+            phone,
+            password_hash: `walkin_${phone}`,
+            role: 'diner',
+            status: 'active',
+            location_id: locationId,
+        }),
+    }, 'manager');
+    return created?.data;
+}
+
+async function createWalkinCheckin({ name, phone, guestsCount, tableNumber, time24 }) {
+    const [tablesRes, slotsRes] = await Promise.all([
+        apiRequest('/tables', {}, 'staff'),
+        apiRequest('/timeslots', {}, 'staff'),
+    ]);
+
+    const table = (tablesRes?.data || []).find((t) =>
+        Number(t.table_number) === Number(tableNumber) &&
+        (!currentStaffRestaurantId || t.restaurant_id === currentStaffRestaurantId),
+    );
+    if (!table) {
+        throw new Error('Selected table is not available in backend.');
+    }
+
+    const today = new Date().toLocaleDateString('en-CA');
+    const slotsToday = (slotsRes?.data || []).filter((s) =>
+        s.restaurant_id === table.restaurant_id && (s.slot_date || s.date) === today,
+    );
+    if (!slotsToday.length) {
+        throw new Error('No active time slots available for today.');
+    }
+
+    const targetMinutes = toMinutes(time24);
+    const sortedByDistance = [...slotsToday].sort((a, b) => {
+        const da = Math.abs(toMinutes(a.start_time) - targetMinutes);
+        const db = Math.abs(toMinutes(b.start_time) - targetMinutes);
+        return da - db;
+    });
+
+    const tableSlotsRes = await apiRequest('/tableslots', {}, 'staff');
+    const tableSlots = tableSlotsRes?.data || [];
+    const chosenSlot = sortedByDistance.find((slot) =>
+        tableSlots.some((ts) => ts.table_id === table.id && ts.slot_id === slot.id && ts.status === 'available'),
+    );
+
+    if (!chosenSlot) {
+        throw new Error('The selected table has no available slot near this time.');
+    }
+
+    const diner = await ensureWalkinDiner(name, phone);
+    const reservationRes = await apiRequest('/reservations', {
+        method: 'POST',
+        body: JSON.stringify({
+            user_id: diner.id,
+            restaurant_id: table.restaurant_id,
+            table_id: table.id,
+            slot_id: chosenSlot.id,
+            guest_count: Number(guestsCount),
+        }),
+    }, 'diner');
+
+    const reservation = reservationRes?.data;
+    const session = JSON.parse(sessionStorage.getItem('dinetime_session') || '{}');
+    if (reservation?.id && session.id) {
+        await apiRequest('/checkin', {
+            method: 'POST',
+            body: JSON.stringify({
+                reservation_id: reservation.id,
+                staff_id: session.id,
+            }),
+        }, 'staff');
+    }
+
+    return { reservation, chosenSlot, table, diner };
 }
 
 // Helper to convert 24h (14:30) to 12h (2:30 PM)
@@ -238,7 +396,7 @@ function setupEventListeners() {
     const logoutBtn = document.getElementById('logout-btn');
     if (logoutBtn) {
         logoutBtn.addEventListener('click', () => {
-            localStorage.removeItem('dinetime_session');
+            sessionStorage.removeItem('dinetime_session');
             window.location.href = 'login.html';
         });
     }
@@ -272,11 +430,11 @@ function setupEventListeners() {
             if (e.target === walkinModal) closeModalFunc();
         });
 
-        walkinForm.addEventListener('submit', (e) => {
+        walkinForm.addEventListener('submit', async (e) => {
             e.preventDefault();
             
             const tableNumStr = document.getElementById('walkin-table').value;
-            const tableId = parseInt(tableNumStr.replace('Table ', ''));
+            const tableId = parseInt(tableNumStr.replace('Table ', ''), 10);
             const guestsCount = document.getElementById('walkin-guests').value;
 
             const name = document.getElementById('walkin-name').value;
@@ -289,29 +447,40 @@ function setupEventListeners() {
                 return;
             }
 
-            const newGuest = {
-                id: 'WK-' + Math.floor(Math.random() * 90000 + 10000),
-                name: name,
-                phone: phone,
-                guests: attendees,
-                time: convertTo12Hour(timeVal),
-                date: new Date().toISOString().split('T')[0],
-                status: 'Checked-In',
-                table: tableNumStr,
-                restaurant: currentStaffRestaurant
-            };
+            try {
+                const { reservation, chosenSlot, table, diner } = await createWalkinCheckin({
+                    name,
+                    phone,
+                    guestsCount,
+                    tableNumber: tableId,
+                    time24: timeVal,
+                });
 
-            // Sync Table Status to 'Occupied'
-            updateTableStatus(tableId, 'Occupied', parseInt(guestsCount));
+                bookingList.unshift({
+                    id: reservation.id,
+                    reservation_id: reservation.id,
+                    user_id: reservation.user_id,
+                    restaurant_id: reservation.restaurant_id,
+                    name: diner.name,
+                    phone,
+                    email: diner.email,
+                    guests: attendees,
+                    time: chosenSlot.start_time,
+                    date: chosenSlot.slot_date || chosenSlot.date,
+                    status: 'Checked-In',
+                    table: `Table ${table.table_number}`,
+                    table_id: table.id,
+                    slot_id: chosenSlot.id,
+                    restaurant: currentStaffRestaurant,
+                });
 
-            bookingList.unshift(newGuest); // Add to top
-            saveBookingsToStorage();
-            updateStats();
-            renderBookings();
-            closeModalFunc();
-            
-            // Show brief success alert (optional, but premium)
-            showToast('Guest verified and added to today\'s list!');
+                updateStats();
+                renderBookings();
+                closeModalFunc();
+                showToast('Guest verified and added to today\'s list!');
+            } catch (error) {
+                showToast(error.message || 'Unable to add walk-in to backend.', 'error');
+            }
         });
     }
 }
@@ -493,20 +662,10 @@ function renderBookings() {
                 showConfirmModal(
                     'Mark No-Show',
                     `Mark ${booking.name} as a No-Show for this reservation?`,
-                    () => {
+                    async () => {
                         booking.status = 'No-Show';
-                        saveBookingsToStorage();
+                        await saveBookingsToStorage();
                         
-                        // Sync to Diner's view
-                        try {
-                            let dinerList = JSON.parse(localStorage.getItem('dinetime_v3_reservations')) || [];
-                            let dRes = dinerList.find(r => r.id === booking.id);
-                            if (dRes) {
-                                dRes.status = 'Cancelled';
-                                localStorage.setItem('dinetime_v3_reservations', JSON.stringify(dinerList));
-                            }
-                        } catch(e) {}
-
                         renderBookings();
                         updateStats();
                         showToast('Customer marked as No-Show.', 'error');
@@ -522,20 +681,25 @@ function renderBookings() {
                 showConfirmModal(
                     'Verify Check-In',
                     `Customer: ${booking.name}\nContact: ${booking.phone}\nGuests: ${booking.guests}\nAssigned: ${booking.table}\n\nProceed to check in this customer?`,
-                    () => {
+                    async () => {
                         booking.status = 'Checked-In';
-                        saveBookingsToStorage();
-                        
-                        // Sync to Diner's view
-                        try {
-                            let dinerList = JSON.parse(localStorage.getItem('dinetime_v3_reservations')) || [];
-                            let dRes = dinerList.find(r => r.id === booking.id);
-                            if (dRes) {
-                                dRes.status = 'Completed';
-                                localStorage.setItem('dinetime_v3_reservations', JSON.stringify(dinerList));
+                        const session = JSON.parse(sessionStorage.getItem('dinetime_session') || '{}');
+                        if (booking.reservation_id && session.id) {
+                            try {
+                                await apiRequest('/checkin', {
+                                    method: 'POST',
+                                    body: JSON.stringify({
+                                        reservation_id: booking.reservation_id,
+                                        staff_id: session.id,
+                                    }),
+                                }, 'staff');
+                            } catch (_e) {
+                                await saveBookingsToStorage();
                             }
-                        } catch(e) {}
-
+                        } else {
+                            await saveBookingsToStorage();
+                        }
+                        
                         renderBookings();
                         updateStats();
                         showToast(`Check-In successful for ${booking.name}.`);

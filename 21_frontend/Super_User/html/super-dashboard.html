@@ -9,7 +9,7 @@
     <link rel="stylesheet" href="../css/global.css">
     
     <script>
-        if (localStorage.getItem('super_auth_status') !== 'true') {
+        if (sessionStorage.getItem('super_auth_status') !== 'true') {
             window.location.href = 'login.html';
         }
     </script>
@@ -128,19 +128,8 @@
                     <div style="display: grid; grid-template-columns: 1.5fr 1fr; gap: 1.5rem;">
                         <div class="panel">
                             <div class="panel-head"><div class="panel-title">Recent System Activity</div></div>
-                            <div class="panel-body" style="padding: 0;">
-                                <div style="display: flex; gap: 1rem; padding: 1rem 1.25rem; border-bottom: 1px solid var(--border-light); align-items: center;">
-                                    <i class="fa-solid fa-circle-check" style="color: #2E7D32; font-size: 1.1rem;"></i>
-                                    <div><div style="font-weight: 600; font-size: 0.85rem; color: var(--text-dark);">Spice Garden approved and activated</div><div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 2px;">2 mins ago</div></div>
-                                </div>
-                                <div style="display: flex; gap: 1rem; padding: 1rem 1.25rem; border-bottom: 1px solid var(--border-light); align-items: center;">
-                                    <i class="fa-solid fa-triangle-exclamation" style="color: #C62828; font-size: 1.1rem;"></i>
-                                    <div><div style="font-weight: 600; font-size: 0.85rem; color: var(--text-dark);">Reservation conflict detected — Table 4</div><div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 2px;">11 mins ago</div></div>
-                                </div>
-                                <div style="display: flex; gap: 1rem; padding: 1rem 1.25rem; align-items: center;">
-                                    <i class="fa-solid fa-user-plus" style="color: #1976D2; font-size: 1.1rem;"></i>
-                                    <div><div style="font-weight: 600; font-size: 0.85rem; color: var(--text-dark);">New Diner registered</div><div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 2px;">1 hour ago</div></div>
-                                </div>
+                            <div class="panel-body" style="padding: 0;" id="recentActivityContainer">
+                                <div style="padding: 1.25rem; color: var(--text-muted); font-size: 0.875rem;">Loading recent activity...</div>
                             </div>
                         </div>
 
@@ -186,8 +175,6 @@
                     </div>
                 </section>
 
-                </section>
-
                 <section id="view-restaurants" class="dashboard-view" style="display: none;">
                     <div class="dashboard-header">
                         <div>
@@ -222,7 +209,6 @@
                                 <option value="">All Statuses</option>
                                 <option value="Verified">Verified</option>
                                 <option value="Pending">Pending</option>
-                                <option value="Suspended">Suspended</option>
                             </select>
                         </div>
                     </div>
@@ -269,7 +255,6 @@
                             <select id="userStatusFilter" onchange="renderUsersTable()" style="margin-bottom: 0; width: 100%; border: 1px solid var(--border-light); border-radius: 6px; padding: 0.6rem 0.75rem; font-size: 0.85rem; background: white; color: var(--text-dark); cursor: pointer; font-family: inherit;">
                                 <option value="">All Statuses</option>
                                 <option value="Active">Active</option>
-                                <option value="Pending">Pending</option>
                                 <option value="Suspended">Suspended</option>
                             </select>
                         </div>
@@ -324,6 +309,7 @@
                                 <option value="Booking">Booking</option>
                                 <option value="Customer Check-In">Customer Check-In</option>
                                 <option value="No-Show">No-Show</option>
+                                <option value="Completed">Completed</option>
                             </select>
                         </div>
                     </div>
@@ -356,15 +342,15 @@
                     <div class="kpi-grid" style="grid-template-columns: repeat(3, 1fr);">
                         <div class="kpi-card" style="border-left-color: #2E7D32;">
                             <h4 style="color: #2E7D32; font-weight: 700;">SUCCESSFUL TRANSACTIONS</h4>
-                            <p class="value">15</p>
+                            <p class="value" id="paySuccessCount">0</p>
                         </div>
                         <div class="kpi-card" style="border-left-color: #C62828;">
                             <h4 style="color: #C62828; font-weight: 700;">FAILED TRANSACTIONS</h4>
-                            <p class="value">1</p>
+                            <p class="value" id="payFailedCount">0</p>
                         </div>
                         <div class="kpi-card" style="border-left-color: #F57F17;">
                             <h4 style="color: #F57F17; font-weight: 700;">REFUNDS ISSUED</h4>
-                            <p class="value">₹850</p>
+                            <p class="value" id="payRefundTotal">INR 0</p>
                         </div>
                     </div>
 
@@ -532,7 +518,6 @@
                             <select id="resStatus" style="background-color: var(--bg-light); border: 1px solid #ccc; font-weight: 500;">
                                 <option value="Verified">Verified (Active)</option>
                                 <option value="Pending">Pending Audit</option>
-                                <option value="Suspended">Table Blocking (Suspended)</option>
                             </select>
                         </div>
                     </div>
@@ -573,7 +558,6 @@
                     <label>Account Status *</label>
                     <select id="userStatus" required>
                         <option value="Active">Active</option>
-                        <option value="Pending">Pending</option>
                         <option value="Suspended">Suspended</option>
                     </select>
                 </div>
@@ -652,6 +636,7 @@
         </div>
     </div>
 
+    <script src="../../js/data.js"></script>
     <script src="../js/super-admin.js"></script>
 </body>
 </html>

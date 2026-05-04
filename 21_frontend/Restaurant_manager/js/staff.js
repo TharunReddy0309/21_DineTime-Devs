@@ -1,4 +1,5 @@
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
+    await StorageManager.ready();
 
     // ---- Toast ----
     const toastContainer = document.getElementById('toast-container');
@@ -121,3 +122,4 @@ document.addEventListener('DOMContentLoaded', () => {
 
     applyFilters();
 });
+

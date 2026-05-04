@@ -39,6 +39,10 @@ class UIRenderer {
         if (imgEl && emptyEl && removeEl) {
             if (rest.image) {
                 imgEl.src = rest.image;
+                imgEl.onerror = function onErr() {
+                    this.onerror = null;
+                    this.src = 'images/restaurant.jpg';
+                };
                 imgEl.style.display = 'block';
                 emptyEl.style.display = 'none';
                 removeEl.style.display = 'flex';
@@ -79,7 +83,7 @@ class UIRenderer {
                     <button class="delete-gallery-btn" data-index="${index}" style="position: absolute; top: 8px; right: 8px; width: 28px; height: 28px; z-index: 10; background: rgba(239, 68, 68, 0.9); color: white; border: none; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; backdrop-filter: blur(4px); transition: 0.2s;">
                         <i class="ph ph-trash" style="font-size: 14px;"></i>
                     </button>
-                    <img src="${imgSrc}" alt="Gallery">
+                    <img src="${imgSrc}" alt="Gallery" onerror="this.onerror=null;this.src='images/gallery-1.jpg';">
                 </div>
             `).join('');
             
@@ -94,6 +98,7 @@ class UIRenderer {
                             const data = StorageManager.getData();
                             data.gallery.splice(idx, 1);
                             StorageManager.saveData(data);
+                            StorageManager.updateRestaurantDetails({});
                             
                             // Show global toast if it exists natively in scope or window
                             if(typeof showToast === 'function') {

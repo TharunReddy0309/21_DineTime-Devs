@@ -1,5 +1,6 @@
-document.addEventListener('DOMContentLoaded', () => {
-    // 1. Initial Load from LocalStorage
+document.addEventListener('DOMContentLoaded', async () => {
+    await StorageManager.ready();
+    // 1. Initial data load
     const appData = StorageManager.getData();
     UIRenderer.renderAll(appData);
 
@@ -74,8 +75,11 @@ document.addEventListener('DOMContentLoaded', () => {
             reader.onload = function(event) {
                 const data = StorageManager.getData();
                 data.restaurant.image = event.target.result;
+                data.gallery = [event.target.result, ...(data.gallery || []).filter((img) => img !== event.target.result)];
                 StorageManager.saveData(data);
+                StorageManager.updateRestaurantDetails({});
                 UIRenderer.renderRestaurantDetails(data.restaurant);
+                UIRenderer.renderGallery(data.gallery || []);
                 showToast('Restaurant profile photo updated!');
             };
             reader.readAsDataURL(file);
@@ -88,6 +92,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 const data = StorageManager.getData();
                 data.restaurant.image = null;
                 StorageManager.saveData(data);
+                StorageManager.updateRestaurantDetails({});
                 UIRenderer.renderRestaurantDetails(data.restaurant);
                 showToast('Restaurant photo removed.', 'info');
             }, "Remove Photo", "Remove");
@@ -111,6 +116,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         const updatedGallery = [...allData.gallery, ...newImages];
                         allData.gallery = updatedGallery;
                         StorageManager.saveData(allData);
+                        StorageManager.updateRestaurantDetails({});
                         if (document.querySelector('.gallery-grid')) {
                             UIRenderer.renderGallery(updatedGallery);
                         }
@@ -244,7 +250,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     restaurantName: restName
                 };
                 
-                // Save to localStorage
+                // Save updated profile
                 StorageManager.updateProfile(updates);
                 
                 // Re-render UI from updated storage
@@ -569,3 +575,4 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 });
+

@@ -1,4 +1,5 @@
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
+    await StorageManager.ready();
     // Basic elements
     const dateSelector = document.getElementById('date-selector');
     const dateDisplay = document.getElementById('date-display');
@@ -56,8 +57,9 @@ document.addEventListener('DOMContentLoaded', () => {
             data.timeSlotsConfig.dates[todayStr] = {
                 isClosed: false,
                 slots: [
-                    { id: "def-1", start: "12:00", end: "14:00", text: "12:00 PM – 2:00 PM", maxTables: 10 },
-                    { id: "def-2", start: "19:00", end: "21:00", text: "7:00 PM – 9:00 PM", maxTables: 12 }
+                    { id: "def-1", start: "18:00", end: "20:00", text: "6:00 PM - 8:00 PM", maxTables: 6 },
+                    { id: "def-2", start: "20:00", end: "22:00", text: "8:00 PM - 10:00 PM", maxTables: 6 },
+                    { id: "def-3", start: "22:00", end: "00:00", text: "10:00 PM - 12:00 AM", maxTables: 6 }
                 ]
             };
             changed = true;
@@ -85,12 +87,54 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // Save configuration for specific date
-    function saveDateConfig(dateStr, dateConfig) {
+    async function syncDateConfigToBackend(dateStr, dateConfig) {
+        const ids = StorageManager._getIds();
+        if (!ids.restaurantId) return;
+
+        const slotsRes = await StorageManager._request(`/timeslots?restaurant_id=${ids.restaurantId}`, {
+            headers: StorageManager._headers('manager'),
+        });
+
+        const existingForDate = (slotsRes?.data || []).filter((slot) => (slot.slot_date || slot.date) === dateStr);
+        await Promise.all(existingForDate.map((slot) =>
+            StorageManager._request(`/timeslots/${slot.id}`, {
+                method: 'DELETE',
+                headers: StorageManager._headers('manager'),
+            }),
+        ));
+
+        if (dateConfig.isClosed) {
+            await StorageManager.refreshFromBackend();
+            return;
+        }
+
+        await Promise.all((dateConfig.slots || []).map((slot) =>
+            StorageManager._request('/timeslots', {
+                method: 'POST',
+                headers: StorageManager._headers('manager'),
+                body: JSON.stringify({
+                    restaurant_id: ids.restaurantId,
+                    slot_date: dateStr,
+                    start_time: slot.start,
+                    end_time: slot.end,
+                }),
+            }),
+        ));
+
+        await StorageManager.refreshFromBackend();
+    }
+
+    async function saveDateConfig(dateStr, dateConfig) {
         initTimeSlotData();
         const data = StorageManager.getData();
         if (!data.timeSlotsConfig.dates) data.timeSlotsConfig.dates = {};
         data.timeSlotsConfig.dates[dateStr] = dateConfig;
         StorageManager.saveData(data);
+        try {
+            await syncDateConfigToBackend(dateStr, dateConfig);
+        } catch (_e) {
+            showToast('Saved locally, backend sync failed.');
+        }
         showToast("Time slots updated successfully.");
     }
     
@@ -119,6 +163,11 @@ document.addEventListener('DOMContentLoaded', () => {
         const ampm = h >= 12 ? 'PM' : 'AM';
         h = h % 12 || 12;
         return `${h}:${m} ${ampm}`;
+    }
+
+    function minutesOf(time24) {
+        const [h, m] = String(time24 || '00:00').split(':');
+        return (Number(h) * 60) + Number(m);
     }
 
     // Render logic
@@ -267,8 +316,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 window.showConfirm("Are you sure you want to delete this time slot?", () => {
                     let config = getDateConfig(currentDate);
                     config.slots = config.slots.filter(s => s.id !== id);
-                    saveDateConfig(currentDate, config);
-                    renderPage();
+                    void saveDateConfig(currentDate, config).then(() => renderPage());
                 });
             });
         });
@@ -298,8 +346,16 @@ document.addEventListener('DOMContentLoaded', () => {
         const start = document.getElementById('slot-start').value;
         const end = document.getElementById('slot-end').value;
         const maxTables = parseInt(document.getElementById('slot-max').value, 10);
+        const startMin = minutesOf(start);
+        const endMin = minutesOf(end);
+        const duration = endMin > startMin ? (endMin - startMin) : ((endMin + 1440) - startMin);
+
+        if (duration !== 120) {
+            showToast('Each time slot must be exactly 2 hours.');
+            return;
+        }
         
-        const textStr = `${formatTime12h(start)} – ${formatTime12h(end)}`;
+        const textStr = `${formatTime12h(start)} - ${formatTime12h(end)}`;
         
         let config = getDateConfig(currentDate);
         
@@ -317,9 +373,10 @@ document.addEventListener('DOMContentLoaded', () => {
             config.slots.sort((a, b) => a.start.localeCompare(b.start));
         }
         
-        saveDateConfig(currentDate, config);
-        closeSlotModal();
-        renderPage();
+        void saveDateConfig(currentDate, config).then(() => {
+            closeSlotModal();
+            renderPage();
+        });
     });
 
     // Date change listener
@@ -351,7 +408,7 @@ document.addEventListener('DOMContentLoaded', () => {
         let config = getDateConfig(currentDate);
         config.isClosed = isChecked;
         
-        saveDateConfig(currentDate, config);
+        void saveDateConfig(currentDate, config);
         
         // Use a 0ms timeout to allow the browser to settle the checkbox state before we re-render everything
         setTimeout(() => {
