@@ -1,7 +1,7 @@
 # 🍽️ Restaurant Reservation & Capacity Management Platform
 
 ## 🎥 Demo Video
-Drive Link: _[https://drive.google.com/file/d/1zrtrLlJf2Cw69DJqI2_0h57EScfrvnts/view?ts=69f99c3d]_
+Drive Link: _[https://drive.google.com/file/d/13wsaQQafARPUqQO1IHLMH_AIC5gsgY2C/view]_
 
 ### ⏱️ Video Includes:
 - ER Diagram Explanation  
