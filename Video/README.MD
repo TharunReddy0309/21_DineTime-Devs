@@ -1,9 +1,9 @@
-# 🍽️ Restaurant Reservation & Capacity Management Platform
+# Restaurant Reservation & Capacity Management Platform
 
-## 🎥 Demo Video
+## Demo Video
 Drive Link: _[https://drive.google.com/file/d/13wsaQQafARPUqQO1IHLMH_AIC5gsgY2C/view]_
 
-### ⏱️ Video Includes:
+### Video Includes:
 - ER Diagram Explanation  
 - JIRA Project Tracking   
 - Workflow Demonstration   
@@ -12,7 +12,7 @@ Drive Link: _[https://drive.google.com/file/d/13wsaQQafARPUqQO1IHLMH_AIC5gsgY2C/
 
 ---
 
-## 👥 Team
+## Team
 **21_DineTime-Devs**
 
 Members:  
