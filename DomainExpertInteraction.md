@@ -128,5 +128,3 @@ Document rules that govern how the domain operates.
   - Handling reservation deposits or advance payments
   - Policy for repeated no-shows
 
-
-
